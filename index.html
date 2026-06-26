@@ -203,7 +203,6 @@ tr:last-child td{border-bottom:none}
     <button class="nb" onclick="go('f29')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="13" x2="8" y2="13"></line><line x1="12" y1="17" x2="8" y2="17"></line></svg>Formulario 29</button>
     <div class="nav-sec">Apoyo</div>
     <button class="nb" onclick="go('educacion')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><path d="M8 7h8"></path><path d="M8 11h8"></path></svg>Aprende</button>
-    <button class="nb" onclick="go('asistente')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:inline;margin-right:6px"><polygon points="12 2 15.09 10.26 24 10.26 17.55 16.09 19.64 24 12 18.17 4.36 24 6.45 16.09 0 10.26 8.91 10.26"></polygon></svg>Asistente IA</button>
     <button class="nb" onclick="go('config')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m2.12 2.12l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m2.12-2.12l4.24-4.24M19.78 4.22l-4.24 4.24m-2.12 2.12l-4.24 4.24M19.78 19.78l-4.24-4.24m-2.12-2.12l-4.24-4.24"></path></svg>Configuración</button>
   </div>
   <div class="nav-ft">
@@ -258,7 +257,7 @@ tr:last-child td{border-bottom:none}
       <div class="fg mb0"><label class="fl">Tipo de cambio USD/CLP</label><div class="flex gap8 ic"><input type="number" class="fi" id="itc" value="960" oninput="cCLP()" style="flex:1"><button class="btn bs bsm" onclick="getTc()" title="Obtener tipo de cambio actual del Banco Central">Actualizar</button></div><div class="fh">Se actualiza automáticamente del Banco Central</div></div>
     </div>
     <div class="frow">
-      <div class="fg mb0"><label class="fl">Monto en CLP</label><input type="number" class="fi" id="ic" placeholder="0" oninput="cUSD()"><div class="fh">Usado en el libro RCV</div></div>
+      <div class="fg mb0"><label class="fl">Monto en CLP</label><input type="number" class="fi" id="ic" placeholder="0" readonly style="background:var(--surface2);cursor:not-allowed"><div class="fh">Calculado automáticamente (USD × TC)</div></div>
       <div class="fg mb0"><label class="fl">Tipo de venta</label><select class="fi" id="iti"><option value="exenta">Exenta de IVA (exportación servicios)</option><option value="afecta">Afecta a IVA (19%)</option></select></div>
     </div>
     <div class="alert al-i" style="margin-bottom:14px"><span class="al-ico">💡</span><div class="al-b">Ingresos de Google Play y Apple de usuarios fuera de Chile → <strong>Exentos de IVA</strong> (exportación de servicios digitales).</div></div>
@@ -332,24 +331,6 @@ tr:last-child td{border-bottom:none}
   <div id="elista"></div>
 </div>
 
-<div class="page" id="page-asistente">
-  <div class="ph"><div class="ph-t">Asistente tributario IA</div><div class="ph-s">Consultas sobre tu SpA, apps móviles y obligaciones con el SII</div></div>
-  <div class="card mb0">
-    <div class="chat-box" id="cbox"></div>
-    <div class="cr">
-      <input type="text" class="ci2" id="cinp" placeholder="Ej: ¿Mis ingresos de Google Play pagan IVA?" onkeydown="if(event.key==='Enter')sC()">
-      <button class="btn bp" onclick="sC()">Enviar</button>
-    </div>
-    <div style="margin-top:10px"><div style="font-size:11px;color:var(--text3);margin-bottom:7px">Preguntas frecuentes:</div>
-    <div class="flex gap8" style="flex-wrap:wrap">
-      <button class="btn bs bsm" onclick="qr('¿Mis ingresos de Google Play pagan IVA en Chile?')">¿Google Play paga IVA?</button>
-      <button class="btn bs bsm" onclick="qr('¿Qué multa tengo si no declaro el F29 a tiempo?')">Multas por no declarar</button>
-      <button class="btn bs bsm" onclick="qr('¿Cómo registro un pago de Apple en CLP para el RCV?')">Registrar pago de Apple</button>
-      <button class="btn bs bsm" onclick="qr('¿Qué es el régimen ProPyme y qué tasa de PPM pago?')">Régimen ProPyme</button>
-    </div></div>
-  </div>
-</div>
-
 <div class="page" id="page-config">
   <div class="ph"><div class="ph-t">Configuración</div><div class="ph-s">Datos de tu empresa y preferencias</div></div>
   <div class="card">
@@ -363,7 +344,6 @@ tr:last-child td{border-bottom:none}
       <div class="fg mb0"><label class="fl">Régimen tributario</label><select class="fi" id="cre"><option value="propyme">ProPyme General (Art. 14D N°3)</option><option value="propyme8">ProPyme Transparente (Art. 14D N°8)</option><option value="general">Régimen General (Art. 14A)</option></select></div>
     </div>
     <div class="fg"><label class="fl">Tasa PPM actual (%)</label><input type="number" class="fi" id="cp" value="0.25" step="0.01" style="max-width:180px"><div class="fh">El SII puede actualizarla. Revisa en tu historial de F29.</div></div>
-    <div class="fg"><label class="fl">API Key Anthropic (para Asistente IA)</label><input type="password" class="fi" id="capi" placeholder="sk-ant-v7-..."><div class="fh">Tu API key se encripta localmente. Solo se usa para el asistente IA. <a href="https://console.anthropic.com/keys" target="_blank" style="color:var(--accent-text)">Obtener API key →</a></div></div>
     <button class="btn bp" onclick="gC()" style="margin-top:6px">Guardar cambios</button>
   </div>
   <div class="card">
@@ -422,7 +402,7 @@ function initApp(){
   const now=new Date();const h=now.getHours();
   document.getElementById('dsal').textContent=h<12?'Buenos días 👋':h<18?'Buenas tardes 👋':'Buenas noches 🌙';
   document.getElementById('dfecha').textContent=now.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  pobMeses();lCfg();rD();rCal();rEdu();initChat();rI();rRCV();cF29();sFH();
+  pobMeses();lCfg();rD();rCal();rEdu();rI();rRCV();cF29();sFH();
 }
 function sFH(){const f=document.getElementById('if');if(f)f.value=new Date().toISOString().split('T')[0]}
 function go(id){
@@ -482,12 +462,14 @@ function rCal(){
 // INGRESOS
 function getTc(){
   fetch('https://api.exchangerate-api.com/v4/latest/USD').then(r=>r.json()).then(data=>{
-    const clp=data.rates?.CLP;if(clp){document.getElementById('itc').value=Math.round(clp);calcCLP();}
+    const clp=data.rates?.CLP;if(clp){document.getElementById('itc').value=Math.round(clp);cCLP();}
   }).catch(e=>console.log('TC automático no disponible'));
 }
-function cCLP(){const u=parseFloat(document.getElementById('iu').value)||0;const tc=parseFloat(document.getElementById('itc').value)||960;document.getElementById('ic').value=u?Math.round(u*tc):'';}
-function cUSD(){const c=parseFloat(document.getElementById('ic').value)||0;const tc=parseFloat(document.getElementById('itc').value)||960;document.getElementById('iu').value=c&&tc?Math.round(c/tc*100)/100:'';}
-function gI(){
+function cCLP(){
+  const u=parseFloat(document.getElementById('iu').value)||0;
+  const tc=parseFloat(document.getElementById('itc').value)||960;
+  document.getElementById('ic').value=u?Math.round(u*tc):'';
+}function gI(){
   const f=document.getElementById('if').value;const c=parseFloat(document.getElementById('ic').value)||0;
   if(!f||!c){alert('Completa fecha y monto en CLP.');return}
   D.ingresos.push({id:Date.now(),fecha:f,fuente:document.getElementById('ifu').value,desc:document.getElementById('id').value,usd:parseFloat(document.getElementById('iu').value)||0,clp:c,tipo:document.getElementById('iti').value,tc:parseFloat(document.getElementById('itc').value)||960});
@@ -543,7 +525,7 @@ const EDU=[
   {c:'IVA',t:'¿Cómo funciona el IVA en tu negocio?',b:'<strong>IVA Débito</strong> (19% que cobras en ventas afectas) <strong>menos IVA Crédito</strong> (19% que pagaste en compras con factura). Si es positivo → pagas al SII. Si es negativo → remanente al mes siguiente.<br><br><strong>Para tus ingresos de Google/Apple:</strong> si tus usuarios están fuera de Chile, califican como <em>exportación de servicios digitales</em> → <strong>exentos de IVA</strong>. Se declaran en código C502 del F29.'},
   {c:'PPM',t:'¿Qué es el PPM y para qué sirve?',b:'Es un adelanto del Impuesto a la Renta anual. Cada mes pagas un % de tus ingresos totales (en ProPyme, aprox. 0.25%).<br><br>En abril, cuando haces el F22 (declaración anual), lo acumulado en PPM se descuenta del impuesto total. Si pagaste de más → el SII te devuelve. Si pagaste de menos → pagas la diferencia.'},
   {c:'SpA',t:'Tu SpA: cómo funciona legalmente',b:'Tu SpA es una persona jurídica separada de ti. Tiene su propio RUT, firma contratos, tiene cuenta bancaria y emite facturas electrónicas.<br><br><strong>Flujo del dinero:</strong><br>1. Ingresos entran a la SpA<br>2. SpA paga IVA + PPM mensualmente (F29)<br>3. SpA paga Impuesto de 1ª Categoría (25%) anualmente (F22)<br>4. Tú retiras utilidades → tributas en tu impuesto personal (Global Complementario)'},
-  {c:'Exportación',t:'¿Cuándo mis ingresos son exentos?',b:'Califican como exportación de servicios exenta cuando:<br><br>✅ Los usuarios que pagan están fuera de Chile<br>✅ El servicio se presta desde Chile al exterior<br>✅ El pago viene de plataforma extranjera (Google LLC, Apple Inc.)<br><br>En ese caso: no cobras IVA y declaras en <strong>C502</strong> del F29.<br><br>⚠️ Si tienes usuarios chilenos que pagan in-app, esa parte podría ser afecta. Consulta al Asistente IA.'},
+  {c:'Exportación',t:'¿Cuándo mis ingresos son exentos?',b:'Califican como exportación de servicios exenta cuando:<br><br>✅ Los usuarios que pagan están fuera de Chile<br>✅ El servicio se presta desde Chile al exterior<br>✅ El pago viene de plataforma extranjera (Google LLC, Apple Inc.)<br><br>En ese caso: no cobras IVA y declaras en <strong>C502</strong> del F29.'},
   {c:'Plazos',t:'Fechas clave — nunca las olvides',b:'📅 <strong>Día 20 de cada mes:</strong> F29 (IVA + PPM). Si cae en fin de semana o feriado, se corre al siguiente día hábil.<br><br>📅 <strong>30 de abril:</strong> F22 (declaración anual de renta).<br><br>💸 <strong>Multa F29 tardío:</strong> 10% del impuesto adeudado + 1.5% mensual de interés. Sin impuesto = 1 UTM fija (~$70.000).<br><br>El CVA te alerta desde el día 16 de cada mes.'},
   {c:'RCV',t:'Libro de Compras y Ventas (RCV)',b:'El SII genera tu RCV automáticamente desde facturas electrónicas. Para ingresos de Google/Apple (que no son facturas chilenas), debes emitir un documento de respaldo en el SII.<br><br><strong>Pasos:</strong><br>1. En el SII: emite una <em>boleta de venta exenta</em> por cada pago recibido<br>2. Usa el tipo de cambio del Banco Central del día del pago<br>3. Este CVA lleva un registro paralelo para referencia'},
 ];
@@ -551,28 +533,10 @@ function rEdu(){document.getElementById('elista').innerHTML=EDU.map((e,i)=>`<div
 function tE(i){document.getElementById('ei'+i).classList.toggle('open')}
 
 // CHAT IA
-const SYS='Eres el asistente tributario del CVA para Claudio, desarrollador chileno de apps móviles (SpA en régimen ProPyme Art. 14D). Ingresos de Google Play y Apple App Store en USD, mayoritariamente exportación de servicios (exentos IVA Chile). Responde en español, claro y conciso, máx. 150 palabras. Si requiere contador, indícalo.';
-let hist=[];
-function initChat(){const b=document.getElementById('cbox');b.innerHTML='';hist=[];aM('ai','Hola. Soy tu asistente tributario. Consultas sobre F29, IVA, PPM, ingresos de Google/Apple y el SII. ¿En qué te ayudo?')}
-function aM(r,t){const b=document.getElementById('cbox');const d=document.createElement('div');d.className='cm '+r;d.innerHTML=r==='ai'?'<div class="cm-tag">CVA Asistente</div>'+t.replace(/\n/g,'<br>'):t;b.appendChild(d);b.scrollTop=b.scrollHeight}
-async function sC(){
-  const inp=document.getElementById('cinp');const txt=inp.value.trim();if(!txt)return;
-  const apiKey=D.cfg?.apiKey;if(!apiKey){alert('Configura tu API key Anthropic en Configuración primero.');return}
-  inp.value='';aM('u',txt);hist.push({role:'user',content:txt});
-  const b=document.getElementById('cbox');const tp=document.createElement('div');tp.className='cm ai';tp.id='tp';tp.innerHTML='<div class="cm-tag">CVA Asistente</div><div class="typing"><span></span><span></span><span></span></div>';b.appendChild(tp);b.scrollTop=b.scrollHeight;
-  try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,system:SYS,messages:hist.slice(-10)})});
-    const data=await r.json();document.getElementById('tp')?.remove();
-    if(!r.ok){aM('ai','Error: '+(data.error?.message||'No autorizado. Revisa tu API key en Configuración.'));return}
-    const rep=data.content?.[0]?.text||'Sin respuesta.';aM('ai',rep);hist.push({role:'assistant',content:rep});
-  }catch(e){document.getElementById('tp')?.remove();aM('ai','Error de conexión. Intenta de nuevo.');}
-}
-function qr(q){document.getElementById('cinp').value=q;sC()}
-
 // CONFIG
 function lCfg(){const c=D.cfg||{};document.getElementById('nav-n').textContent=c.nombre||'Tu empresa SpA';document.getElementById('nav-r').textContent=c.rut?'RUT: '+c.rut:'RUT: pendiente';}
-function lCfgF(){const c=D.cfg||{};document.getElementById('cn').value=c.nombre||'';document.getElementById('cr').value=c.rut||'';document.getElementById('cg').value=c.giro||'';document.getElementById('cre').value=c.regimen||'propyme';document.getElementById('cp').value=c.ppm||0.25;document.getElementById('capi').value=c.apiKey||''}
-function gC(){D.cfg={nombre:document.getElementById('cn').value||'Tu empresa SpA',rut:document.getElementById('cr').value||'',giro:document.getElementById('cg').value||'',regimen:document.getElementById('cre').value||'propyme',ppm:parseFloat(document.getElementById('cp').value)||0.25,apiKey:document.getElementById('capi').value||''};save();lCfg();const btn=event.target;const o=btn.textContent;btn.textContent='✓ Guardado';setTimeout(()=>btn.textContent=o,1500)}
+function lCfgF(){const c=D.cfg||{};document.getElementById('cn').value=c.nombre||'';document.getElementById('cr').value=c.rut||'';document.getElementById('cg').value=c.giro||'';document.getElementById('cre').value=c.regimen||'propyme';document.getElementById('cp').value=c.ppm||0.25}
+function gC(){D.cfg={nombre:document.getElementById('cn').value||'Tu empresa SpA',rut:document.getElementById('cr').value||'',giro:document.getElementById('cg').value||'',regimen:document.getElementById('cre').value||'propyme',ppm:parseFloat(document.getElementById('cp').value)||0.25};save();lCfg();const btn=event.target;const o=btn.textContent;btn.textContent='✓ Guardado';setTimeout(()=>btn.textContent=o,1500)}
 function chPw(){
   const actual=prompt('Contraseña actual:');if(!actual)return;
   if(hpw(actual)!==JSON.parse(localStorage.getItem(MT_KEY)||'{}').hash){alert('Contraseña incorrecta.');return}
