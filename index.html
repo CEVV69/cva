@@ -195,20 +195,20 @@ tr:last-child td{border-bottom:none}
   </div>
   <div class="nav-body">
     <div class="nav-sec">Principal</div>
-    <button class="nb on" onclick="go('dashboard')"><span class="ni">⊞</span>Resumen</button>
-    <button class="nb" onclick="go('calendario')"><span class="ni">📅</span>Calendario<span class="nbdg nbdg-r" id="nb-cal">!</span></button>
+    <button class="nb on" onclick="go('dashboard')"><!-- Resumen SVG --><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>Resumen</button>
+    <button class="nb" onclick="go('calendario')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>Calendario<span class="nbdg nbdg-r" id="nb-cal">!</span></button>
     <div class="nav-sec">Contabilidad</div>
-    <button class="nb" onclick="go('ingresos')"><span class="ni">💵</span>Ingresos</button>
-    <button class="nb" onclick="go('libro')"><span class="ni">📒</span>Libro RCV</button>
-    <button class="nb" onclick="go('f29')"><span class="ni">🧾</span>Formulario 29</button>
+    <button class="nb" onclick="go('ingresos')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><rect x="2" y="5" width="20" height="12" rx="1"></rect><circle cx="12" cy="11" r="2"></circle></svg>Ingresos</button>
+    <button class="nb" onclick="go('libro')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>Libro RCV</button>
+    <button class="nb" onclick="go('f29')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="13" x2="8" y2="13"></line><line x1="12" y1="17" x2="8" y2="17"></line></svg>Formulario 29</button>
     <div class="nav-sec">Apoyo</div>
-    <button class="nb" onclick="go('educacion')"><span class="ni">📚</span>Aprende</button>
-    <button class="nb" onclick="go('asistente')"><span class="ni">✦</span>Asistente IA</button>
-    <button class="nb" onclick="go('config')"><span class="ni">⚙</span>Configuración</button>
+    <button class="nb" onclick="go('educacion')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><path d="M8 7h8"></path><path d="M8 11h8"></path></svg>Aprende</button>
+    <button class="nb" onclick="go('asistente')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:inline;margin-right:6px"><polygon points="12 2 15.09 10.26 24 10.26 17.55 16.09 19.64 24 12 18.17 4.36 24 6.45 16.09 0 10.26 8.91 10.26"></polygon></svg>Asistente IA</button>
+    <button class="nb" onclick="go('config')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m2.12 2.12l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m2.12-2.12l4.24-4.24M19.78 4.22l-4.24 4.24m-2.12 2.12l-4.24 4.24M19.78 19.78l-4.24-4.24m-2.12-2.12l-4.24-4.24"></path></svg>Configuración</button>
   </div>
   <div class="nav-ft">
     <div class="ep"><div class="ep-n" id="nav-n">Tu empresa SpA</div><div class="ep-r" id="nav-r">RUT: pendiente</div></div>
-    <button class="lo-btn" onclick="lockOut()">🔒 Cerrar sesión</button>
+    <button class="lo-btn" onclick="lockOut()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Cerrar sesión</button>
   </div>
 </nav>
 
@@ -255,7 +255,7 @@ tr:last-child td{border-bottom:none}
     <div class="fg"><label class="fl">Descripción</label><input type="text" class="fi" id="id" placeholder="Ej: Monetización agosto — Mi App"></div>
     <div class="frow">
       <div class="fg mb0"><label class="fl">Monto en USD</label><input type="number" class="fi" id="iu" placeholder="0.00" step="0.01" oninput="cCLP()"><div class="fh">Valor en la plataforma</div></div>
-      <div class="fg mb0"><label class="fl">Tipo de cambio USD/CLP</label><input type="number" class="fi" id="itc" value="960" oninput="cCLP()"><div class="fh">Ver en <a href="https://www.bcentral.cl" target="_blank" style="color:var(--accent-text)">bcentral.cl</a></div></div>
+      <div class="fg mb0"><label class="fl">Tipo de cambio USD/CLP</label><div class="flex gap8 ic"><input type="number" class="fi" id="itc" value="960" oninput="cCLP()" style="flex:1"><button class="btn bs bsm" onclick="getTc()" title="Obtener tipo de cambio actual del Banco Central">Actualizar</button></div><div class="fh">Se actualiza automáticamente del Banco Central</div></div>
     </div>
     <div class="frow">
       <div class="fg mb0"><label class="fl">Monto en CLP</label><input type="number" class="fi" id="ic" placeholder="0" oninput="cUSD()"><div class="fh">Usado en el libro RCV</div></div>
@@ -363,6 +363,7 @@ tr:last-child td{border-bottom:none}
       <div class="fg mb0"><label class="fl">Régimen tributario</label><select class="fi" id="cre"><option value="propyme">ProPyme General (Art. 14D N°3)</option><option value="propyme8">ProPyme Transparente (Art. 14D N°8)</option><option value="general">Régimen General (Art. 14A)</option></select></div>
     </div>
     <div class="fg"><label class="fl">Tasa PPM actual (%)</label><input type="number" class="fi" id="cp" value="0.25" step="0.01" style="max-width:180px"><div class="fh">El SII puede actualizarla. Revisa en tu historial de F29.</div></div>
+    <div class="fg"><label class="fl">API Key Anthropic (para Asistente IA)</label><input type="password" class="fi" id="capi" placeholder="sk-ant-v7-..."><div class="fh">Tu API key se encripta localmente. Solo se usa para el asistente IA. <a href="https://console.anthropic.com/keys" target="_blank" style="color:var(--accent-text)">Obtener API key →</a></div></div>
     <button class="btn bp" onclick="gC()" style="margin-top:6px">Guardar cambios</button>
   </div>
   <div class="card">
@@ -479,6 +480,11 @@ function rCal(){
 }
 
 // INGRESOS
+function getTc(){
+  fetch('https://api.exchangerate-api.com/v4/latest/USD').then(r=>r.json()).then(data=>{
+    const clp=data.rates?.CLP;if(clp){document.getElementById('itc').value=Math.round(clp);calcCLP();}
+  }).catch(e=>console.log('TC automático no disponible'));
+}
 function cCLP(){const u=parseFloat(document.getElementById('iu').value)||0;const tc=parseFloat(document.getElementById('itc').value)||960;document.getElementById('ic').value=u?Math.round(u*tc):'';}
 function cUSD(){const c=parseFloat(document.getElementById('ic').value)||0;const tc=parseFloat(document.getElementById('itc').value)||960;document.getElementById('iu').value=c&&tc?Math.round(c/tc*100)/100:'';}
 function gI(){
@@ -493,7 +499,7 @@ function delI(id){if(!confirm('¿Eliminar este ingreso?'))return;D.ingresos=D.in
 function rI(){
   const{y,m}=gM('ifil');const lista=iM(y,m);const el=document.getElementById('itbl');
   if(!lista.length){el.innerHTML='<div class="empty"><div class="ei2">💳</div>Sin ingresos en este período.</div>';return}
-  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Fuente</th><th>Descripción</th><th>Tipo</th><th class="tr">USD</th><th class="tr">CLP</th><th></th></tr></thead><tbody>'+lista.map(i=>`<tr><td>${new Date(i.fecha).toLocaleDateString('es-CL')}</td><td><span class="bdg bdg-gr">${i.fuente==='google'?'Google Play':i.fuente==='apple'?'Apple':'Otro'}</span></td><td>${i.desc||'—'}</td><td><span class="bdg ${i.tipo==='exenta'?'bdg-g':'bdg-gold'}">${i.tipo==='exenta'?'Exenta':'Afecta'}</span></td><td class="tr tm">${i.usd?'US$'+i.usd.toFixed(2):'—'}</td><td class="tr tm">${fmt(i.clp)}</td><td><button class="btn bd bxs" onclick="delI(${i.id})">✕</button></td></tr>`).join('')+'</tbody></table>';
+  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Fuente</th><th>Descripción</th><th>Tipo</th><th class="tr">USD</th><th class="tr">CLP</th><th style="width:50px;text-align:center">Acción</th></tr></thead><tbody>'+lista.map(i=>`<tr><td>${new Date(i.fecha).toLocaleDateString('es-CL')}</td><td><span class="bdg bdg-gr">${i.fuente==='google'?'Google Play':i.fuente==='apple'?'Apple':'Otro'}</span></td><td>${i.desc||'—'}</td><td><span class="bdg ${i.tipo==='exenta'?'bdg-g':'bdg-gold'}">${i.tipo==='exenta'?'Exenta':'Afecta'}</span></td><td class="tr tm">${i.usd?'US$'+i.usd.toFixed(2):'—'}</td><td class="tr tm">${fmt(i.clp)}</td><td style="text-align:center"><button class="btn bd bxs" onclick="delI(${i.id})">✕</button></td></tr>`).join('')+'</tbody></table>';
 }
 
 // RCV
@@ -550,11 +556,14 @@ let hist=[];
 function initChat(){const b=document.getElementById('cbox');b.innerHTML='';hist=[];aM('ai','Hola. Soy tu asistente tributario. Consultas sobre F29, IVA, PPM, ingresos de Google/Apple y el SII. ¿En qué te ayudo?')}
 function aM(r,t){const b=document.getElementById('cbox');const d=document.createElement('div');d.className='cm '+r;d.innerHTML=r==='ai'?'<div class="cm-tag">CVA Asistente</div>'+t.replace(/\n/g,'<br>'):t;b.appendChild(d);b.scrollTop=b.scrollHeight}
 async function sC(){
-  const inp=document.getElementById('cinp');const txt=inp.value.trim();if(!txt)return;inp.value='';aM('u',txt);hist.push({role:'user',content:txt});
+  const inp=document.getElementById('cinp');const txt=inp.value.trim();if(!txt)return;
+  const apiKey=D.cfg?.apiKey;if(!apiKey){alert('Configura tu API key Anthropic en Configuración primero.');return}
+  inp.value='';aM('u',txt);hist.push({role:'user',content:txt});
   const b=document.getElementById('cbox');const tp=document.createElement('div');tp.className='cm ai';tp.id='tp';tp.innerHTML='<div class="cm-tag">CVA Asistente</div><div class="typing"><span></span><span></span><span></span></div>';b.appendChild(tp);b.scrollTop=b.scrollHeight;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:SYS,messages:hist.slice(-10)})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:SYS,messages:hist.slice(-10)})});
     const data=await r.json();document.getElementById('tp')?.remove();
+    if(!r.ok){aM('ai','Error: '+(data.error?.message||'No autorizado. Revisa tu API key en Configuración.'));return}
     const rep=data.content?.[0]?.text||'Sin respuesta.';aM('ai',rep);hist.push({role:'assistant',content:rep});
   }catch(e){document.getElementById('tp')?.remove();aM('ai','Error de conexión. Intenta de nuevo.');}
 }
@@ -562,8 +571,8 @@ function qr(q){document.getElementById('cinp').value=q;sC()}
 
 // CONFIG
 function lCfg(){const c=D.cfg||{};document.getElementById('nav-n').textContent=c.nombre||'Tu empresa SpA';document.getElementById('nav-r').textContent=c.rut?'RUT: '+c.rut:'RUT: pendiente';}
-function lCfgF(){const c=D.cfg||{};document.getElementById('cn').value=c.nombre||'';document.getElementById('cr').value=c.rut||'';document.getElementById('cg').value=c.giro||'';document.getElementById('cre').value=c.regimen||'propyme';document.getElementById('cp').value=c.ppm||0.25;}
-function gC(){D.cfg={nombre:document.getElementById('cn').value||'Tu empresa SpA',rut:document.getElementById('cr').value||'',giro:document.getElementById('cg').value||'',regimen:document.getElementById('cre').value||'propyme',ppm:parseFloat(document.getElementById('cp').value)||0.25};save();lCfg();const btn=event.target;const o=btn.textContent;btn.textContent='✓ Guardado';setTimeout(()=>btn.textContent=o,1500)}
+function lCfgF(){const c=D.cfg||{};document.getElementById('cn').value=c.nombre||'';document.getElementById('cr').value=c.rut||'';document.getElementById('cg').value=c.giro||'';document.getElementById('cre').value=c.regimen||'propyme';document.getElementById('cp').value=c.ppm||0.25;document.getElementById('capi').value=c.apiKey||''}
+function gC(){D.cfg={nombre:document.getElementById('cn').value||'Tu empresa SpA',rut:document.getElementById('cr').value||'',giro:document.getElementById('cg').value||'',regimen:document.getElementById('cre').value||'propyme',ppm:parseFloat(document.getElementById('cp').value)||0.25,apiKey:document.getElementById('capi').value||''};save();lCfg();const btn=event.target;const o=btn.textContent;btn.textContent='✓ Guardado';setTimeout(()=>btn.textContent=o,1500)}
 function chPw(){
   const actual=prompt('Contraseña actual:');if(!actual)return;
   if(hpw(actual)!==JSON.parse(localStorage.getItem(MT_KEY)||'{}').hash){alert('Contraseña incorrecta.');return}
