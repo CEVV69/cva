@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CVA — Contador Virtual Autónomo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F6F3;--surface:#FFFFFF;--surface2:#F0EEE9;--surface3:#E8E6E0;
+  --text:#1A1A1A;--text2:#5A5A54;--text3:#9A9A90;
+  --accent:#1B4FA8;--accent-bg:#EBF1FB;--accent-text:#1544A0;
+  --green:#00875A;--green-bg:#E3F5EE;--green-text:#006644;
+  --red:#C53030;--red-bg:#FEF0F0;--red-text:#9B2C2C;
+  --gold:#9A7218;--gold-bg:#FBF4E3;--gold-text:#7A5A12;
+  --border:#E2E0D8;--border2:#CECBC0;
+  --radius:10px;--rsm:6px;--font:'Inter',system-ui,sans-serif;--nav:220px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#0F0F12;--surface:#1A1A1E;--surface2:#222228;--surface3:#2A2A32;
+  --text:#EEEEE8;--text2:#9A9A92;--text3:#6A6A62;
+  --accent:#5B8DEF;--accent-bg:#141E36;--accent-text:#7AAAF8;
+  --green:#2ECC80;--green-bg:#0A2018;--green-text:#2ECC80;
+  --red:#F47070;--red-bg:#220E0E;--red-text:#F47070;
+  --gold:#E5B84A;--gold-bg:#221A08;--gold-text:#E5B84A;
+  --border:#2A2A32;--border2:#3A3A46;
+}}
+#lock-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+.lock-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 36px;width:340px;text-align:center}
+.lock-logo{width:56px;height:56px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;margin:0 auto 18px}
+.lock-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px}
+.lock-sub{font-size:13px;color:var(--text3);margin-bottom:26px}
+.lock-lbl{font-size:12px;font-weight:600;color:var(--text2);text-align:left;display:block;margin-bottom:5px}
+.lock-inp{width:100%;padding:10px 13px;border:1px solid var(--border2);border-radius:var(--rsm);background:var(--surface2);color:var(--text);font-size:14px;font-family:var(--font);outline:none;letter-spacing:.1em;margin-bottom:8px;transition:border-color .15s}
+.lock-inp:focus{border-color:var(--accent)}
+.lock-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--rsm);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);margin-top:4px}
+.lock-btn:hover{opacity:.9}
+.lock-err{font-size:12px;color:var(--red-text);margin-top:7px;min-height:16px}
+.lock-hint{font-size:12px;color:var(--text3);margin-top:14px;line-height:1.65;text-align:left}
+#app{display:none;height:100vh;overflow:hidden;flex-direction:row}
+#app.v{display:flex}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+nav{width:var(--nav);min-width:var(--nav);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.nav-hd{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-li{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:800;flex-shrink:0}
+.nav-lt{font-size:13px;font-weight:700;color:var(--text);line-height:1.2}
+.nav-ls{font-size:10px;color:var(--text3)}
+.nav-body{flex:1;padding:6px 8px;overflow-y:auto}
+.nav-sec{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;padding:14px 8px 4px}
+.nb{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:var(--rsm);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all .13s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
+.nb:hover{background:var(--surface2);color:var(--text)}
+.nb.on{background:var(--accent-bg);color:var(--accent-text);font-weight:600}
+.ni{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nbdg{margin-left:auto;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px}
+.nbdg-r{background:var(--red-bg);color:var(--red-text)}
+.nbdg-g{background:var(--green-bg);color:var(--green-text)}
+.nav-ft{padding:12px 14px;border-top:1px solid var(--border)}
+.ep{background:var(--surface2);border-radius:var(--rsm);padding:9px 11px}
+.ep-n{font-size:13px;font-weight:600;color:var(--text)}
+.ep-r{font-size:11px;color:var(--text3);margin-top:1px}
+.lo-btn{display:flex;align-items:center;gap:6px;width:100%;padding:7px 11px;margin-top:8px;border:none;background:none;color:var(--text3);font-size:12px;cursor:pointer;border-radius:var(--rsm);font-family:var(--font)}
+.lo-btn:hover{background:var(--surface2);color:var(--text)}
+main{flex:1;overflow-y:auto;padding:26px 28px 40px}
+.page{display:none}
+.page.on{display:block}
+.ph{margin-bottom:22px}
+.ph-t{font-size:20px;font-weight:700;color:var(--text);margin-bottom:3px}
+.ph-s{font-size:13px;color:var(--text2)}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin-bottom:22px}
+.mc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 16px}
+.mc-l{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.mc-v{font-size:21px;font-weight:800;color:var(--text);line-height:1.1}
+.mc-s{font-size:11px;color:var(--text2);margin-top:3px}
+.mc.g{border-color:var(--green);background:var(--green-bg)}.mc.g .mc-v{color:var(--green-text)}
+.mc.r{border-color:var(--red);background:var(--red-bg)}.mc.r .mc-v{color:var(--red-text)}
+.mc.gold{border-color:var(--gold);background:var(--gold-bg)}.mc.gold .mc-v{color:var(--gold-text)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px}
+.chd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ct{font-size:14px;font-weight:600;color:var(--text)}
+.alert{border-radius:var(--rsm);padding:11px 14px;margin-bottom:12px;font-size:13px;display:flex;align-items:flex-start;gap:9px;border:1px solid}
+.al-w{background:var(--gold-bg);border-color:var(--gold);color:var(--gold-text)}
+.al-d{background:var(--red-bg);border-color:var(--red);color:var(--red-text)}
+.al-ok{background:var(--green-bg);border-color:var(--green);color:var(--green-text)}
+.al-i{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-text)}
+.al-ico{font-size:15px;margin-top:1px;flex-shrink:0}
+.al-b strong{display:block;font-weight:700;margin-bottom:2px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px}
+.fg{margin-bottom:11px}
+.fl{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px}
+.fi{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s}
+.fi:focus{border-color:var(--accent)}
+.fh{font-size:11px;color:var(--text3);margin-top:3px}
+.btn{padding:8px 15px;border-radius:var(--rsm);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .13s;font-family:var(--font);display:inline-flex;align-items:center;gap:6px}
+.bp{background:var(--accent);color:#fff}.bp:hover{opacity:.88}
+.bs{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}.bs:hover{background:var(--surface3)}
+.bd{background:var(--red-bg);color:var(--red-text);border:1px solid var(--red)}
+.bsm{padding:5px 11px;font-size:12px}
+.bxs{padding:3px 8px;font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;padding:0 0 8px;border-bottom:1px solid var(--border)}
+td{padding:9px 0;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+td:first-child,th:first-child{color:var(--text)}
+tr:last-child td{border-bottom:none}
+.tr{text-align:right}
+.tm{font-variant-numeric:tabular-nums;font-family:'SF Mono',monospace;font-size:12px}
+.bdg{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+.bdg-g{background:var(--green-bg);color:var(--green-text)}
+.bdg-r{background:var(--red-bg);color:var(--red-text)}
+.bdg-gold{background:var(--gold-bg);color:var(--gold-text)}
+.bdg-gr{background:var(--surface2);color:var(--text2)}
+.f29s{background:var(--surface2);border-radius:var(--rsm);padding:13px 15px;margin-bottom:11px}
+.f29st{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:9px}
+.f29r{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.f29r:last-child{margin-bottom:0}
+.f29c{font-family:'SF Mono',monospace;font-size:11px;color:var(--text3);width:38px;flex-shrink:0;font-weight:700}
+.f29l{flex:1;font-size:12px;color:var(--text2)}
+.f29v{font-family:'SF Mono',monospace;font-size:13px;font-weight:700;color:var(--text);min-width:110px;text-align:right}
+.f29sep{border-top:1px solid var(--border);padding-top:8px;margin-top:6px}
+.f29t{border-radius:var(--rsm);padding:13px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.f29tl{font-size:13px;font-weight:700}
+.f29tv{font-size:22px;font-weight:800;font-family:'SF Mono',monospace}
+.tp{background:var(--red-bg)}.tp .f29tl,.tp .f29tv{color:var(--red-text)}
+.tz{background:var(--green-bg)}.tz .f29tl,.tz .f29tv{color:var(--green-text)}
+.tn{background:var(--gold-bg)}.tn .f29tl,.tn .f29tv{color:var(--gold-text)}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:11px;margin-top:14px}
+.ci{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 16px;border-left:4px solid var(--border2)}
+.ci.urgente{border-left-color:var(--red)}.ci.proximo{border-left-color:var(--gold)}.ci.ok{border-left-color:var(--green)}
+.ci-d{font-size:28px;font-weight:900;color:var(--text);line-height:1}
+.ci-m{font-size:12px;color:var(--text3);margin-bottom:5px}
+.ci-t{font-size:13px;color:var(--text);font-weight:500}
+.ci-dt{font-size:12px;font-weight:700;margin-top:7px}
+.ci.urgente .ci-dt{color:var(--red-text)}.ci.proximo .ci-dt{color:var(--gold-text)}.ci.ok .ci-dt{color:var(--green-text)}
+.chat-box{height:320px;overflow-y:auto;background:var(--surface2);border-radius:var(--rsm);padding:12px;margin-bottom:11px;display:flex;flex-direction:column;gap:9px}
+.cm{max-width:86%;border-radius:var(--radius);padding:10px 13px;font-size:13px;line-height:1.6}
+.cm.u{background:var(--accent-bg);color:var(--accent-text);margin-left:auto;border-radius:var(--radius) var(--radius) 4px var(--radius)}
+.cm.ai{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px var(--radius) var(--radius) var(--radius)}
+.cm-tag{font-size:10px;font-weight:700;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+.cr{display:flex;gap:8px}
+.ci2{flex:1;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--rsm);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--font);outline:none}
+.ci2:focus{border-color:var(--accent)}
+.typing{display:flex;gap:4px;align-items:center;padding:2px 0}
+.typing span{width:6px;height:6px;background:var(--text3);border-radius:50%;animation:blink 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.tabs{display:flex;gap:2px;background:var(--surface2);border-radius:var(--rsm);padding:3px;width:fit-content;margin-bottom:15px}
+.tab{padding:6px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);border:none;background:none;font-family:var(--font);transition:all .13s}
+.tab.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.ei{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:border-color .13s}
+.ei:hover,.ei.open{border-color:var(--accent)}
+.eihd{display:flex;justify-content:space-between;align-items:center}
+.eit{font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.echip{font-size:10px;font-weight:700;background:var(--accent-bg);color:var(--accent-text);padding:2px 8px;border-radius:10px}
+.eib{font-size:13px;color:var(--text2);margin-top:11px;line-height:1.7;display:none}
+.ei.open .eib{display:block}
+.ear{color:var(--text3);transition:transform .2s}
+.ei.open .ear{transform:rotate(180deg)}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border)}
+.sr:last-child{border-bottom:none}
+.sl{font-size:13px;font-weight:600;color:var(--text)}
+.sd{font-size:12px;color:var(--text3);margin-top:2px}
+.prog{height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin:8px 0 6px}
+.pf{height:100%;border-radius:3px;transition:width .4s ease}
+.flex{display:flex}.gap8{gap:8px}.gap12{gap:12px}.flex1{flex:1}.ic{align-items:center}.jb{justify-content:space-between}.mt8{margin-top:8px}.mt16{margin-top:16px}.mb0{margin-bottom:0!important}
+.empty{text-align:center;padding:30px 20px;color:var(--text3);font-size:13px}
+.ei2{font-size:30px;margin-bottom:8px}
+.div{height:1px;background:var(--border);margin:14px 0}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-logo">C</div>
+    <div class="lock-title">CVA</div>
+    <div class="lock-sub" id="ls">Contador Virtual Autónomo</div>
+    <label class="lock-lbl" id="ll">Contraseña</label>
+    <input type="password" class="lock-inp" id="lp" placeholder="••••••••" autocomplete="current-password">
+    <input type="password" class="lock-inp" id="lp2" placeholder="Confirmar contraseña" style="display:none" autocomplete="new-password">
+    <button class="lock-btn" id="lb" onclick="lockAction()">Entrar</button>
+    <div class="lock-err" id="le"></div>
+    <div class="lock-hint" id="lh"></div>
+  </div>
+</div>
+
+<div id="app">
+<nav>
+  <div class="nav-hd">
+    <div class="nav-logo">
+      <div class="nav-li">C</div>
+      <div><div class="nav-lt">CVA</div><div class="nav-ls">Contador Virtual Autónomo</div></div>
+    </div>
+  </div>
+  <div class="nav-body">
+    <div class="nav-sec">Principal</div>
+    <button class="nb on" onclick="go('dashboard')"><span class="ni">⊞</span>Resumen</button>
+    <button class="nb" onclick="go('calendario')"><span class="ni">📅</span>Calendario<span class="nbdg nbdg-r" id="nb-cal">!</span></button>
+    <div class="nav-sec">Contabilidad</div>
+    <button class="nb" onclick="go('ingresos')"><span class="ni">💵</span>Ingresos</button>
+    <button class="nb" onclick="go('libro')"><span class="ni">📒</span>Libro RCV</button>
+    <button class="nb" onclick="go('f29')"><span class="ni">🧾</span>Formulario 29</button>
+    <div class="nav-sec">Apoyo</div>
+    <button class="nb" onclick="go('educacion')"><span class="ni">📚</span>Aprende</button>
+    <button class="nb" onclick="go('asistente')"><span class="ni">✦</span>Asistente IA</button>
+    <button class="nb" onclick="go('config')"><span class="ni">⚙</span>Configuración</button>
+  </div>
+  <div class="nav-ft">
+    <div class="ep"><div class="ep-n" id="nav-n">Tu empresa SpA</div><div class="ep-r" id="nav-r">RUT: pendiente</div></div>
+    <button class="lo-btn" onclick="lockOut()">🔒 Cerrar sesión</button>
+  </div>
+</nav>
+
+<main>
+
+<div class="page on" id="page-dashboard">
+  <div class="ph"><div class="ph-t" id="dsal">Bienvenido 👋</div><div class="ph-s">Hoy es <span id="dfecha"></span></div></div>
+  <div id="dal"></div>
+  <div class="mgrid">
+    <div class="mc"><div class="mc-l">Mes activo</div><div class="mc-v" id="dm">—</div><div class="mc-s">Período en curso</div></div>
+    <div class="mc g"><div class="mc-l">Ingresos del mes</div><div class="mc-v" id="di">$0</div><div class="mc-s">Ventas registradas</div></div>
+    <div class="mc r"><div class="mc-l">IVA estimado</div><div class="mc-v" id="diva">$0</div><div class="mc-s">Débito fiscal 19%</div></div>
+    <div class="mc gold"><div class="mc-l">PPM estimado</div><div class="mc-v" id="dppm">$0</div><div class="mc-s">Pago provisional</div></div>
+  </div>
+  <div class="card">
+    <div class="chd"><div class="ct">Estado del F29 — mes actual</div><span class="bdg" id="f29b">Pendiente</span></div>
+    <div class="prog"><div class="pf" id="f29p" style="width:0%;background:var(--gold)"></div></div>
+    <div style="font-size:12px;color:var(--text2)" id="f29pt">Registra ingresos del mes para preparar tu declaración.</div>
+    <div class="flex gap8 mt16">
+      <button class="btn bp bsm" onclick="go('ingresos')">Registrar ingresos</button>
+      <button class="btn bs bsm" onclick="go('f29')">Ver F29 →</button>
+    </div>
+  </div>
+  <div class="card mb0">
+    <div class="chd"><div class="ct">Actividad reciente</div></div>
+    <div id="dact"><div class="empty"><div class="ei2">📋</div>Sin registros aún.</div></div>
+  </div>
+</div>
+
+<div class="page" id="page-calendario">
+  <div class="ph"><div class="ph-t">Calendario tributario</div><div class="ph-s">Vencimientos SII — nunca pierdas una fecha</div></div>
+  <div id="cal-al"></div>
+  <div class="cgrid" id="cgrid"></div>
+</div>
+
+<div class="page" id="page-ingresos">
+  <div class="ph"><div class="ph-t">Registrar ingreso</div><div class="ph-s">Pagos de Google Play, Apple App Store u otras fuentes</div></div>
+  <div class="card">
+    <div class="ct" style="margin-bottom:14px">Nuevo ingreso</div>
+    <div class="frow">
+      <div class="fg mb0"><label class="fl">Fecha del pago</label><input type="date" class="fi" id="if"></div>
+      <div class="fg mb0"><label class="fl">Fuente</label><select class="fi" id="ifu"><option value="google">Google Play</option><option value="apple">Apple App Store</option><option value="otro">Otro</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">Descripción</label><input type="text" class="fi" id="id" placeholder="Ej: Monetización agosto — Mi App"></div>
+    <div class="frow">
+      <div class="fg mb0"><label class="fl">Monto en USD</label><input type="number" class="fi" id="iu" placeholder="0.00" step="0.01" oninput="cCLP()"><div class="fh">Valor en la plataforma</div></div>
+      <div class="fg mb0"><label class="fl">Tipo de cambio USD/CLP</label><input type="number" class="fi" id="itc" value="960" oninput="cCLP()"><div class="fh">Ver en <a href="https://www.bcentral.cl" target="_blank" style="color:var(--accent-text)">bcentral.cl</a></div></div>
+    </div>
+    <div class="frow">
+      <div class="fg mb0"><label class="fl">Monto en CLP</label><input type="number" class="fi" id="ic" placeholder="0" oninput="cUSD()"><div class="fh">Usado en el libro RCV</div></div>
+      <div class="fg mb0"><label class="fl">Tipo de venta</label><select class="fi" id="iti"><option value="exenta">Exenta de IVA (exportación servicios)</option><option value="afecta">Afecta a IVA (19%)</option></select></div>
+    </div>
+    <div class="alert al-i" style="margin-bottom:14px"><span class="al-ico">💡</span><div class="al-b">Ingresos de Google Play y Apple de usuarios fuera de Chile → <strong>Exentos de IVA</strong> (exportación de servicios digitales).</div></div>
+    <div class="flex gap8">
+      <button class="btn bp" onclick="gI()" id="bg">Guardar ingreso</button>
+      <button class="btn bs" onclick="lI()">Limpiar</button>
+    </div>
+  </div>
+  <div class="card mb0">
+    <div class="chd"><div class="ct">Ingresos registrados</div><select class="fi" id="ifil" style="width:auto;font-size:12px" onchange="rI()"></select></div>
+    <div id="itbl"></div>
+  </div>
+</div>
+
+<div class="page" id="page-libro">
+  <div class="ph"><div class="ph-t">Libro de compras y ventas</div><div class="ph-s">Registro paralelo al RCV del SII</div></div>
+  <div class="alert al-i"><span class="al-ico">ℹ️</span><div class="al-b"><strong>¿Para qué sirve?</strong> El SII genera tu RCV desde facturas electrónicas. Este libro te ayuda a cuadrar tus datos antes del día 20.</div></div>
+  <div class="tabs"><button class="tab on" onclick="rTab('v',this)">Ventas</button><button class="tab" onclick="rTab('c',this)">Compras</button></div>
+  <div id="rcv-v">
+    <div class="card mb0">
+      <div class="chd"><div class="ct">Ventas — <span id="rvm"></span></div><button class="btn bs bsm" onclick="go('ingresos')">+ Agregar venta</button></div>
+      <div id="rvt"></div>
+      <div class="div"></div>
+      <div class="flex jb" style="font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">Total exentas</span><strong id="rex">$0</strong></div>
+      <div class="flex jb" style="font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">Total afectas</span><strong id="raf">$0</strong></div>
+      <div class="flex jb" style="font-size:13px"><span style="color:var(--red-text);font-weight:600">IVA débito (19%)</span><strong style="color:var(--red-text)" id="rdb">$0</strong></div>
+    </div>
+  </div>
+  <div id="rcv-c" style="display:none">
+    <div class="card mb0">
+      <div class="chd"><div class="ct">Compras — <span id="rcm"></span></div><button class="btn bs bsm" onclick="aC()">+ Agregar compra</button></div>
+      <div id="rct"></div>
+      <div class="div"></div>
+      <div class="flex jb" style="font-size:13px"><span style="color:var(--green-text);font-weight:600">IVA crédito</span><strong style="color:var(--green-text)" id="rcr">$0</strong></div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-f29">
+  <div class="ph"><div class="ph-t">Formulario 29 — Simulador</div><div class="ph-s">Prepara tu declaración antes de ir al SII</div></div>
+  <div class="alert al-i"><span class="al-ico">📋</span><div class="al-b"><strong>Cómo usar:</strong> Copia el Código 91 y los demás valores en <strong>sii.cl → Servicios Online → Impuestos Mensuales → Declarar IVA (F29)</strong>.</div></div>
+  <div class="card">
+    <div class="chd"><div class="ct">Período a declarar</div><select class="fi" id="f29m" style="width:auto" onchange="cF29()"></select></div>
+    <div class="f29s">
+      <div class="f29st">Sección A — Débito fiscal (ventas)</div>
+      <div class="f29r"><div class="f29c">C502</div><div class="f29l">Ventas / servicios exentos o no gravados</div><div class="f29v" id="c502">$0</div></div>
+      <div class="f29r"><div class="f29c">C503</div><div class="f29l">Ventas afectas al IVA (base imponible)</div><div class="f29v" id="c503">$0</div></div>
+      <div class="f29r f29sep"><div class="f29c" style="color:var(--red-text)">C520</div><div class="f29l" style="font-weight:700;color:var(--text)">IVA débito fiscal (19%)</div><div class="f29v" style="color:var(--red-text)" id="c520">$0</div></div>
+    </div>
+    <div class="f29s">
+      <div class="f29st">Sección B — Crédito fiscal (compras)</div>
+      <div class="f29r"><div class="f29c">C521</div><div class="f29l">Total compras netas con crédito fiscal</div><div class="f29v" id="c521">$0</div></div>
+      <div class="f29r"><div class="f29c" style="color:var(--green-text)">C524</div><div class="f29l" style="font-weight:700;color:var(--text)">IVA crédito fiscal recuperable</div><div class="f29v" style="color:var(--green-text)" id="c524">$0</div></div>
+    </div>
+    <div class="f29s">
+      <div class="f29st">Sección C — PPM (pago provisional mensual)</div>
+      <div class="f29r"><div class="f29c">C33</div><div class="f29l">Base de cálculo (total ingresos del período)</div><div class="f29v" id="c33">$0</div></div>
+      <div class="f29r"><div class="f29c">C33</div><div class="f29l">Tasa PPM (ProPyme — aprox. 0.25%)</div><div class="f29v" id="f29tasa">0.25%</div></div>
+      <div class="f29r f29sep"><div class="f29c" style="color:var(--gold-text)">C38</div><div class="f29l" style="font-weight:700;color:var(--text)">PPM a pagar</div><div class="f29v" style="color:var(--gold-text)" id="c38">$0</div></div>
+    </div>
+    <div class="f29t tp" id="f29tot"><div class="f29tl">Código 91 — Total a pagar al SII</div><div class="f29tv" id="cod91">$0</div></div>
+    <div class="flex gap8 mt16">
+      <button class="btn bp" onclick="window.open('https://www.sii.cl/servicios_online/1042-3264.html','_blank')">Ir al SII →</button>
+      <button class="btn bs" onclick="pF29()">Imprimir resumen</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-educacion">
+  <div class="ph"><div class="ph-t">Aprende contabilidad básica</div><div class="ph-s">Conceptos esenciales para manejar tu SpA de forma autónoma</div></div>
+  <div id="elista"></div>
+</div>
+
+<div class="page" id="page-asistente">
+  <div class="ph"><div class="ph-t">Asistente tributario IA</div><div class="ph-s">Consultas sobre tu SpA, apps móviles y obligaciones con el SII</div></div>
+  <div class="card mb0">
+    <div class="chat-box" id="cbox"></div>
+    <div class="cr">
+      <input type="text" class="ci2" id="cinp" placeholder="Ej: ¿Mis ingresos de Google Play pagan IVA?" onkeydown="if(event.key==='Enter')sC()">
+      <button class="btn bp" onclick="sC()">Enviar</button>
+    </div>
+    <div style="margin-top:10px"><div style="font-size:11px;color:var(--text3);margin-bottom:7px">Preguntas frecuentes:</div>
+    <div class="flex gap8" style="flex-wrap:wrap">
+      <button class="btn bs bsm" onclick="qr('¿Mis ingresos de Google Play pagan IVA en Chile?')">¿Google Play paga IVA?</button>
+      <button class="btn bs bsm" onclick="qr('¿Qué multa tengo si no declaro el F29 a tiempo?')">Multas por no declarar</button>
+      <button class="btn bs bsm" onclick="qr('¿Cómo registro un pago de Apple en CLP para el RCV?')">Registrar pago de Apple</button>
+      <button class="btn bs bsm" onclick="qr('¿Qué es el régimen ProPyme y qué tasa de PPM pago?')">Régimen ProPyme</button>
+    </div></div>
+  </div>
+</div>
+
+<div class="page" id="page-config">
+  <div class="ph"><div class="ph-t">Configuración</div><div class="ph-s">Datos de tu empresa y preferencias</div></div>
+  <div class="card">
+    <div class="ct" style="margin-bottom:14px">Datos de la empresa</div>
+    <div class="frow">
+      <div class="fg mb0"><label class="fl">Razón social</label><input type="text" class="fi" id="cn" placeholder="Mi Empresa SpA"></div>
+      <div class="fg mb0"><label class="fl">RUT de la empresa</label><input type="text" class="fi" id="cr" placeholder="76.XXX.XXX-X"></div>
+    </div>
+    <div class="frow">
+      <div class="fg mb0"><label class="fl">Giro principal</label><input type="text" class="fi" id="cg" placeholder="Desarrollo de software y aplicaciones móviles"></div>
+      <div class="fg mb0"><label class="fl">Régimen tributario</label><select class="fi" id="cre"><option value="propyme">ProPyme General (Art. 14D N°3)</option><option value="propyme8">ProPyme Transparente (Art. 14D N°8)</option><option value="general">Régimen General (Art. 14A)</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">Tasa PPM actual (%)</label><input type="number" class="fi" id="cp" value="0.25" step="0.01" style="max-width:180px"><div class="fh">El SII puede actualizarla. Revisa en tu historial de F29.</div></div>
+    <button class="btn bp" onclick="gC()" style="margin-top:6px">Guardar cambios</button>
+  </div>
+  <div class="card">
+    <div class="ct" style="margin-bottom:14px">Seguridad y datos</div>
+    <div class="sr"><div><div class="sl">Cambiar contraseña</div><div class="sd">Datos encriptados con AES-256 en tu navegador</div></div><button class="btn bs bsm" onclick="chPw()">Cambiar</button></div>
+    <div class="sr"><div><div class="sl">Exportar backup encriptado</div><div class="sd">Descarga tus datos para usar en otro equipo</div></div><button class="btn bs bsm" onclick="exp()">Exportar .cva</button></div>
+    <div class="sr"><div><div class="sl">Importar backup</div><div class="sd">Restaura datos desde un archivo .cva</div></div><button class="btn bs bsm" onclick="document.getElementById('fimp').click()">Importar</button></div>
+    <div class="sr"><div><div class="sl" style="color:var(--red-text)">Borrar todos los datos</div><div class="sd">Acción permanente e irreversible</div></div><button class="btn bd bsm" onclick="bTodo()">Borrar todo</button></div>
+    <input type="file" id="fimp" accept=".cva" style="display:none" onchange="imp(this)">
+  </div>
+  <div class="card mb0">
+    <div class="ct" style="margin-bottom:10px">Acerca de CVA</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7"><strong>CVA v1.0</strong> — Contador Virtual Autónomo<br>App personal para gestión tributaria ante el SII de Chile.<br>Datos almacenados <strong>solo en este navegador</strong>, encriptados con AES-256.<br><br><span style="color:var(--text3)">⚠️ Esta app es una herramienta de apoyo. Para situaciones complejas, consulta a un contador certificado.</span></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+const MES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const SK_KEY='cva_enc_v1',MT_KEY='cva_meta_v1';
+let SK='',D={ingresos:[],compras:[],cfg:{nombre:'Tu empresa SpA',rut:'',giro:'Desarrollo de software y aplicaciones móviles',regimen:'propyme',ppm:0.25}};
+
+function enc(d,pw){return CryptoJS.AES.encrypt(JSON.stringify(d),pw).toString()}
+function dec(e,pw){try{const b=CryptoJS.AES.decrypt(e,pw);const s=b.toString(CryptoJS.enc.Utf8);return s?JSON.parse(s):null}catch(x){return null}}
+function hpw(pw){return CryptoJS.SHA256(pw).toString()}
+function save(){if(SK)localStorage.setItem(SK_KEY,enc(D,SK))}
+const fmt=n=>new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(Math.round(n||0));
+
+// LOCK
+const meta=JSON.parse(localStorage.getItem(MT_KEY)||'{}');
+const isNew=!meta.hash;
+function initLock(){
+  if(isNew){document.getElementById('ls').textContent='Primera vez — crea tu contraseña';document.getElementById('ll').textContent='Crear contraseña';document.getElementById('lb').textContent='Crear y entrar';document.getElementById('lp2').style.display='block';document.getElementById('lh').innerHTML='<strong>⚠️ Importante:</strong> Esta contraseña encripta todos tus datos. Si la olvidas, no hay recuperación. Guárdala en un lugar seguro.';}
+  ['lp','lp2'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')lockAction()}));
+}
+function lockAction(){
+  const pw=document.getElementById('lp').value;
+  const er=document.getElementById('le');
+  if(pw.length<6){er.textContent='Mínimo 6 caracteres.';return}
+  if(isNew){
+    const pw2=document.getElementById('lp2').value;
+    if(pw!==pw2){er.textContent='Las contraseñas no coinciden.';return}
+    SK=pw;localStorage.setItem(MT_KEY,JSON.stringify({hash:hpw(pw)}));save();enterApp();
+  }else{
+    if(hpw(pw)!==meta.hash){er.textContent='Contraseña incorrecta.';return}
+    SK=pw;const e=localStorage.getItem(SK_KEY);if(e){const d=dec(e,SK);if(d)D=d;}enterApp();
+  }
+}
+function enterApp(){document.getElementById('lock-screen').style.display='none';document.getElementById('app').classList.add('v');initApp()}
+function lockOut(){if(!confirm('¿Cerrar sesión?'))return;SK='';D={ingresos:[],compras:[],cfg:{nombre:'Tu empresa SpA',rut:'',giro:'',regimen:'propyme',ppm:0.25}};document.getElementById('lock-screen').style.display='flex';document.getElementById('app').classList.remove('v');document.getElementById('lp').value='';document.getElementById('le').textContent='';}
+
+// APP
+function initApp(){
+  const now=new Date();const h=now.getHours();
+  document.getElementById('dsal').textContent=h<12?'Buenos días 👋':h<18?'Buenas tardes 👋':'Buenas noches 🌙';
+  document.getElementById('dfecha').textContent=now.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  pobMeses();lCfg();rD();rCal();rEdu();initChat();rI();rRCV();cF29();sFH();
+}
+function sFH(){const f=document.getElementById('if');if(f)f.value=new Date().toISOString().split('T')[0]}
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  document.querySelectorAll('.nb').forEach(b=>{if((b.getAttribute('onclick')||'').includes("'"+id+"'"))b.classList.add('on')});
+  if(id==='f29')cF29();if(id==='libro')rRCV();if(id==='ingresos')rI();if(id==='dashboard')rD();if(id==='config')lCfgF();
+}
+function pobMeses(){
+  const now=new Date();
+  ['ifil','f29m'].forEach(id=>{const s=document.getElementById(id);if(!s)return;s.innerHTML='';for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const o=document.createElement('option');o.value=d.getFullYear()+'-'+(d.getMonth()+1);o.textContent=MES[d.getMonth()]+' '+d.getFullYear();if(i===0)o.selected=true;s.appendChild(o);}});
+}
+function gM(id){const v=(document.getElementById(id)||{}).value||'';if(!v){const n=new Date();return{y:n.getFullYear(),m:n.getMonth()+1}}const[y,m]=v.split('-').map(Number);return{y,m}}
+function iM(y,m){return D.ingresos.filter(i=>{const d=new Date(i.fecha);return d.getFullYear()===y&&(d.getMonth()+1)===m})}
+
+// DASHBOARD
+function rD(){
+  const now=new Date();const lista=iM(now.getFullYear(),now.getMonth()+1);
+  const af=lista.filter(i=>i.tipo==='afecta').reduce((a,i)=>a+i.clp,0);
+  const ex=lista.filter(i=>i.tipo==='exenta').reduce((a,i)=>a+i.clp,0);
+  const tot=af+ex;const iva=Math.round(af*.19);const r=D.cfg.ppm||0.25;const ppm=Math.round(tot*r/100);
+  document.getElementById('dm').textContent=MES[now.getMonth()]+' '+now.getFullYear();
+  document.getElementById('di').textContent=fmt(tot);document.getElementById('diva').textContent=fmt(iva);document.getElementById('dppm').textContent=fmt(ppm);
+  document.getElementById('f29p').style.width=(tot>0?65:0)+'%';document.getElementById('f29p').style.background=tot>0?'var(--green)':'var(--gold)';
+  document.getElementById('f29pt').textContent=tot>0?'Datos disponibles. Revisa el F29 antes del día 20.':'Registra ingresos para preparar tu declaración.';
+  const b=document.getElementById('f29b');if(tot>0){b.textContent='Con datos';b.className='bdg bdg-g';}else{b.textContent='Pendiente';b.className='bdg bdg-gold';}
+  const dia=now.getDate();const al=document.getElementById('dal');
+  if(dia>20)al.innerHTML='<div class="alert al-d"><span class="al-ico">🚨</span><div class="al-b"><strong>F29 vencido este mes</strong>Declara cuanto antes en sii.cl para minimizar multas.</div></div>';
+  else if(dia>=16)al.innerHTML=`<div class="alert al-w"><span class="al-ico">⚠️</span><div class="al-b"><strong>Vence en ${20-dia} día(s)</strong>El F29 vence el día 20. Revisa tus ingresos.</div></div>`;
+  else al.innerHTML='';
+  const top=[...D.ingresos].sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)).slice(0,5);
+  const act=document.getElementById('dact');
+  if(!top.length){act.innerHTML='<div class="empty"><div class="ei2">📋</div>Sin registros aún.</div>';return}
+  act.innerHTML='<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Fuente</th><th class="tr">Monto</th></tr></thead><tbody>'+top.map(i=>`<tr><td>${new Date(i.fecha).toLocaleDateString('es-CL')}</td><td>${i.desc||'—'}</td><td><span class="bdg bdg-gr">${i.fuente==='google'?'Google Play':i.fuente==='apple'?'Apple':'Otro'}</span></td><td class="tr tm">${fmt(i.clp)}</td></tr>`).join('')+'</tbody></table>';
+}
+
+// CALENDARIO
+function rCal(){
+  const now=new Date();const dia=now.getDate();const mes=now.getMonth();const y=now.getFullYear();
+  const al=document.getElementById('cal-al');
+  if(dia>20)al.innerHTML='<div class="alert al-d"><span class="al-ico">🚨</span><div class="al-b"><strong>F29 fuera de plazo</strong>Declara ahora en sii.cl. Multa base: 10% del impuesto + 1.5% mensual de interés.</div></div>';
+  else if(dia>=16)al.innerHTML=`<div class="alert al-w"><span class="al-ico">⏰</span><div class="al-b"><strong>Vence en ${20-dia} día(s)</strong>F29 de ${MES[mes]} vence el día 20.</div></div>`;
+  else al.innerHTML=`<div class="alert al-ok"><span class="al-ico">✅</span><div class="al-b"><strong>Al día</strong>Próximo F29 el 20 de ${MES[mes]}, en ${20-dia} días.</div></div>`;
+  const mn=(mes+1)%12;const yn=mes===11?y+1:y;
+  const diasF22=Math.round((new Date(y+1,3,30)-now)/86400000);
+  const items=[
+    {d:20,m:MES[mes],t:'F29 — Declaración mensual IVA + PPM',dt:dia<=20?`En ${20-dia} día(s)`:`Vencido hace ${dia-20} día(s)`,cls:dia>20?'urgente':dia>=16?'urgente':'proximo'},
+    {d:20,m:MES[mn]+' '+yn,t:'F29 — Próxima declaración mensual',dt:'En aprox. 30 días',cls:'ok'},
+    {d:30,m:'Abril '+(y+1),t:'F22 — Declaración anual de Renta',dt:`En ${diasF22} días`,cls:'ok'},
+  ];
+  document.getElementById('cgrid').innerHTML=items.map(i=>`<div class="ci ${i.cls}"><div class="ci-d">${i.d}</div><div class="ci-m">${i.m}</div><div class="ci-t">${i.t}</div><div class="ci-dt">${i.dt}</div></div>`).join('');
+  const nb=document.getElementById('nb-cal');
+  if(dia>=16){nb.textContent='!';nb.className='nbdg nbdg-r';}else{nb.textContent='2';nb.className='nbdg nbdg-g';}
+}
+
+// INGRESOS
+function cCLP(){const u=parseFloat(document.getElementById('iu').value)||0;const tc=parseFloat(document.getElementById('itc').value)||960;document.getElementById('ic').value=u?Math.round(u*tc):'';}
+function cUSD(){const c=parseFloat(document.getElementById('ic').value)||0;const tc=parseFloat(document.getElementById('itc').value)||960;document.getElementById('iu').value=c&&tc?Math.round(c/tc*100)/100:'';}
+function gI(){
+  const f=document.getElementById('if').value;const c=parseFloat(document.getElementById('ic').value)||0;
+  if(!f||!c){alert('Completa fecha y monto en CLP.');return}
+  D.ingresos.push({id:Date.now(),fecha:f,fuente:document.getElementById('ifu').value,desc:document.getElementById('id').value,usd:parseFloat(document.getElementById('iu').value)||0,clp:c,tipo:document.getElementById('iti').value,tc:parseFloat(document.getElementById('itc').value)||960});
+  save();rI();rD();rRCV();lI();
+  const btn=document.getElementById('bg');const o=btn.textContent;btn.textContent='✓ Guardado';setTimeout(()=>btn.textContent=o,1800);
+}
+function lI(){['id','iu','ic'].forEach(id=>document.getElementById(id).value='');sFH()}
+function delI(id){if(!confirm('¿Eliminar este ingreso?'))return;D.ingresos=D.ingresos.filter(i=>i.id!==id);save();rI();rD();rRCV();cF29()}
+function rI(){
+  const{y,m}=gM('ifil');const lista=iM(y,m);const el=document.getElementById('itbl');
+  if(!lista.length){el.innerHTML='<div class="empty"><div class="ei2">💳</div>Sin ingresos en este período.</div>';return}
+  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Fuente</th><th>Descripción</th><th>Tipo</th><th class="tr">USD</th><th class="tr">CLP</th><th></th></tr></thead><tbody>'+lista.map(i=>`<tr><td>${new Date(i.fecha).toLocaleDateString('es-CL')}</td><td><span class="bdg bdg-gr">${i.fuente==='google'?'Google Play':i.fuente==='apple'?'Apple':'Otro'}</span></td><td>${i.desc||'—'}</td><td><span class="bdg ${i.tipo==='exenta'?'bdg-g':'bdg-gold'}">${i.tipo==='exenta'?'Exenta':'Afecta'}</span></td><td class="tr tm">${i.usd?'US$'+i.usd.toFixed(2):'—'}</td><td class="tr tm">${fmt(i.clp)}</td><td><button class="btn bd bxs" onclick="delI(${i.id})">✕</button></td></tr>`).join('')+'</tbody></table>';
+}
+
+// RCV
+function rTab(t,btn){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));btn.classList.add('on');document.getElementById('rcv-v').style.display=t==='v'?'block':'none';document.getElementById('rcv-c').style.display=t==='c'?'block':'none';}
+function rRCV(){
+  const now=new Date();const y=now.getFullYear();const m=now.getMonth()+1;const lbl=MES[now.getMonth()]+' '+y;
+  document.getElementById('rvm').textContent=lbl;document.getElementById('rcm').textContent=lbl;
+  const lista=iM(y,m);const ex=lista.filter(i=>i.tipo==='exenta').reduce((a,i)=>a+i.clp,0);const af=lista.filter(i=>i.tipo==='afecta').reduce((a,i)=>a+i.clp,0);const db=Math.round(af*.19);
+  document.getElementById('rex').textContent=fmt(ex);document.getElementById('raf').textContent=fmt(af);document.getElementById('rdb').textContent=fmt(db);
+  const rvt=document.getElementById('rvt');
+  if(!lista.length)rvt.innerHTML='<div class="empty"><div class="ei2">📄</div>Sin ventas este período.</div>';
+  else rvt.innerHTML='<table><thead><tr><th>Fecha</th><th>Tipo doc.</th><th>Descripción</th><th>Tipo</th><th class="tr">Neto</th><th class="tr">IVA</th><th class="tr">Total</th></tr></thead><tbody>'+lista.map(i=>{const iv=i.tipo==='afecta'?Math.round(i.clp*.19):0;return`<tr><td>${new Date(i.fecha).toLocaleDateString('es-CL')}</td><td><span class="bdg bdg-gr">Nota venta</span></td><td>${i.desc||i.fuente}</td><td><span class="bdg ${i.tipo==='exenta'?'bdg-g':'bdg-gold'}">${i.tipo==='exenta'?'Exenta':'Afecta'}</span></td><td class="tr tm">${fmt(i.clp)}</td><td class="tr tm">${iv?fmt(iv):'—'}</td><td class="tr tm">${fmt(i.clp+iv)}</td></tr>`}).join('')+'</tbody></table>';
+  const cIva=D.compras.reduce((a,c)=>a+Math.round((c.monto||0)*.19),0);document.getElementById('rcr').textContent=fmt(cIva);
+  const rct=document.getElementById('rct');
+  if(!D.compras.length)rct.innerHTML='<div class="empty"><div class="ei2">🛒</div>Sin compras. Las compras con factura te dan crédito fiscal.</div>';
+  else rct.innerHTML='<table><thead><tr><th>Fecha</th><th>Descripción</th><th class="tr">Neto</th><th class="tr">IVA crédito</th></tr></thead><tbody>'+D.compras.map(c=>`<tr><td>${new Date(c.fecha).toLocaleDateString('es-CL')}</td><td>${c.desc||'—'}</td><td class="tr tm">${fmt(c.monto)}</td><td class="tr tm" style="color:var(--green-text)">${fmt(Math.round(c.monto*.19))}</td></tr>`).join('')+'</tbody></table>';
+}
+function aC(){const mn=prompt('Monto NETO de la compra en CLP (sin IVA):');if(!mn||isNaN(mn))return;const ds=prompt('Descripción (Ej: Dominio web, suscripción):');D.compras.push({id:Date.now(),monto:parseFloat(mn),desc:ds||'Compra',fecha:new Date().toISOString().split('T')[0]});save();rRCV();cF29()}
+
+// F29
+function cF29(){
+  const{y,m}=gM('f29m');const lista=iM(y,m);
+  const ex=lista.filter(i=>i.tipo==='exenta').reduce((a,i)=>a+i.clp,0);const af=lista.filter(i=>i.tipo==='afecta').reduce((a,i)=>a+i.clp,0);const tot=ex+af;
+  const db=Math.round(af*.19);const cN=D.compras.reduce((a,c)=>a+(c.monto||0),0);const cr=Math.round(cN*.19);
+  const ivaP=Math.max(0,db-cr);const r=D.cfg.ppm||0.25;const ppm=Math.round(tot*r/100);const totP=ivaP+ppm;
+  document.getElementById('c502').textContent=fmt(ex);document.getElementById('c503').textContent=fmt(af);document.getElementById('c520').textContent=fmt(db);
+  document.getElementById('c521').textContent=fmt(cN);document.getElementById('c524').textContent=fmt(cr);
+  document.getElementById('c33').textContent=fmt(tot);document.getElementById('f29tasa').textContent=r+'%';document.getElementById('c38').textContent=fmt(ppm);
+  document.getElementById('cod91').textContent=fmt(totP);
+  const el=document.getElementById('f29tot');el.className='f29t '+(totP===0?'tz':totP<0?'tn':'tp');
+}
+function pF29(){
+  const{y,m}=gM('f29m');
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>F29 ${MES[m-1]} ${y}</title><style>body{font-family:sans-serif;padding:30px;max-width:600px}h2{margin-bottom:4px}p{color:#666;font-size:13px;margin-bottom:20px}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:9px 12px;border:1px solid #ddd;text-align:left}th{background:#f5f5f5;font-size:12px}td:last-child{text-align:right;font-weight:600}.tot{background:#fee;font-size:16px}.fn{font-size:12px;color:#999;margin-top:20px}</style></head><body><h2>CVA — Formulario 29 Simulador</h2><p>Período: ${MES[m-1]} ${y} | Generado: ${new Date().toLocaleDateString('es-CL')}</p><table><tr><th>Código</th><th>Descripción</th><th>Valor</th></tr><tr><td>C502</td><td>Ventas exentas / no gravadas</td><td>${document.getElementById('c502').textContent}</td></tr><tr><td>C503</td><td>Ventas afectas IVA (base imponible)</td><td>${document.getElementById('c503').textContent}</td></tr><tr><td>C520</td><td>IVA débito fiscal</td><td>${document.getElementById('c520').textContent}</td></tr><tr><td>C524</td><td>IVA crédito fiscal</td><td>${document.getElementById('c524').textContent}</td></tr><tr><td>C38</td><td>PPM (Pago Provisional Mensual)</td><td>${document.getElementById('c38').textContent}</td></tr><tr class="tot"><td colspan="2"><strong>Código 91 — Total a pagar al SII</strong></td><td>${document.getElementById('cod91').textContent}</td></tr></table><p class="fn">Referencia solo — confirmar en sii.cl → Servicios Online → Impuestos Mensuales</p></body></html>`);w.print();
+}
+
+// EDUCACIÓN
+const EDU=[
+  {c:'F29',t:'¿Qué es el Formulario 29?',b:'El F29 es la declaración mensual que toda empresa debe presentar al SII antes del día 20. Incluye:<br><br>• <strong>IVA</strong>: Débito fiscal (ventas) menos Crédito fiscal (compras con factura). Pagas la diferencia.<br>• <strong>PPM</strong>: Anticipo mensual del impuesto anual a la renta.<br><br>Si no tuviste actividad, igual debes declarar "sin movimiento". No hacerlo genera multa de 1 UTM (~$70.000).'},
+  {c:'IVA',t:'¿Cómo funciona el IVA en tu negocio?',b:'<strong>IVA Débito</strong> (19% que cobras en ventas afectas) <strong>menos IVA Crédito</strong> (19% que pagaste en compras con factura). Si es positivo → pagas al SII. Si es negativo → remanente al mes siguiente.<br><br><strong>Para tus ingresos de Google/Apple:</strong> si tus usuarios están fuera de Chile, califican como <em>exportación de servicios digitales</em> → <strong>exentos de IVA</strong>. Se declaran en código C502 del F29.'},
+  {c:'PPM',t:'¿Qué es el PPM y para qué sirve?',b:'Es un adelanto del Impuesto a la Renta anual. Cada mes pagas un % de tus ingresos totales (en ProPyme, aprox. 0.25%).<br><br>En abril, cuando haces el F22 (declaración anual), lo acumulado en PPM se descuenta del impuesto total. Si pagaste de más → el SII te devuelve. Si pagaste de menos → pagas la diferencia.'},
+  {c:'SpA',t:'Tu SpA: cómo funciona legalmente',b:'Tu SpA es una persona jurídica separada de ti. Tiene su propio RUT, firma contratos, tiene cuenta bancaria y emite facturas electrónicas.<br><br><strong>Flujo del dinero:</strong><br>1. Ingresos entran a la SpA<br>2. SpA paga IVA + PPM mensualmente (F29)<br>3. SpA paga Impuesto de 1ª Categoría (25%) anualmente (F22)<br>4. Tú retiras utilidades → tributas en tu impuesto personal (Global Complementario)'},
+  {c:'Exportación',t:'¿Cuándo mis ingresos son exentos?',b:'Califican como exportación de servicios exenta cuando:<br><br>✅ Los usuarios que pagan están fuera de Chile<br>✅ El servicio se presta desde Chile al exterior<br>✅ El pago viene de plataforma extranjera (Google LLC, Apple Inc.)<br><br>En ese caso: no cobras IVA y declaras en <strong>C502</strong> del F29.<br><br>⚠️ Si tienes usuarios chilenos que pagan in-app, esa parte podría ser afecta. Consulta al Asistente IA.'},
+  {c:'Plazos',t:'Fechas clave — nunca las olvides',b:'📅 <strong>Día 20 de cada mes:</strong> F29 (IVA + PPM). Si cae en fin de semana o feriado, se corre al siguiente día hábil.<br><br>📅 <strong>30 de abril:</strong> F22 (declaración anual de renta).<br><br>💸 <strong>Multa F29 tardío:</strong> 10% del impuesto adeudado + 1.5% mensual de interés. Sin impuesto = 1 UTM fija (~$70.000).<br><br>El CVA te alerta desde el día 16 de cada mes.'},
+  {c:'RCV',t:'Libro de Compras y Ventas (RCV)',b:'El SII genera tu RCV automáticamente desde facturas electrónicas. Para ingresos de Google/Apple (que no son facturas chilenas), debes emitir un documento de respaldo en el SII.<br><br><strong>Pasos:</strong><br>1. En el SII: emite una <em>boleta de venta exenta</em> por cada pago recibido<br>2. Usa el tipo de cambio del Banco Central del día del pago<br>3. Este CVA lleva un registro paralelo para referencia'},
+];
+function rEdu(){document.getElementById('elista').innerHTML=EDU.map((e,i)=>`<div class="ei" id="ei${i}" onclick="tE(${i})"><div class="eihd"><div class="eit"><span class="echip">${e.c}</span>${e.t}</div><span class="ear">▾</span></div><div class="eib">${e.b}</div></div>`).join('')}
+function tE(i){document.getElementById('ei'+i).classList.toggle('open')}
+
+// CHAT IA
+const SYS='Eres el asistente tributario del CVA para Claudio, desarrollador chileno de apps móviles (SpA en régimen ProPyme Art. 14D). Ingresos de Google Play y Apple App Store en USD, mayoritariamente exportación de servicios (exentos IVA Chile). Responde en español, claro y conciso, máx. 150 palabras. Si requiere contador, indícalo.';
+let hist=[];
+function initChat(){const b=document.getElementById('cbox');b.innerHTML='';hist=[];aM('ai','Hola. Soy tu asistente tributario. Consultas sobre F29, IVA, PPM, ingresos de Google/Apple y el SII. ¿En qué te ayudo?')}
+function aM(r,t){const b=document.getElementById('cbox');const d=document.createElement('div');d.className='cm '+r;d.innerHTML=r==='ai'?'<div class="cm-tag">CVA Asistente</div>'+t.replace(/\n/g,'<br>'):t;b.appendChild(d);b.scrollTop=b.scrollHeight}
+async function sC(){
+  const inp=document.getElementById('cinp');const txt=inp.value.trim();if(!txt)return;inp.value='';aM('u',txt);hist.push({role:'user',content:txt});
+  const b=document.getElementById('cbox');const tp=document.createElement('div');tp.className='cm ai';tp.id='tp';tp.innerHTML='<div class="cm-tag">CVA Asistente</div><div class="typing"><span></span><span></span><span></span></div>';b.appendChild(tp);b.scrollTop=b.scrollHeight;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:SYS,messages:hist.slice(-10)})});
+    const data=await r.json();document.getElementById('tp')?.remove();
+    const rep=data.content?.[0]?.text||'Sin respuesta.';aM('ai',rep);hist.push({role:'assistant',content:rep});
+  }catch(e){document.getElementById('tp')?.remove();aM('ai','Error de conexión. Intenta de nuevo.');}
+}
+function qr(q){document.getElementById('cinp').value=q;sC()}
+
+// CONFIG
+function lCfg(){const c=D.cfg||{};document.getElementById('nav-n').textContent=c.nombre||'Tu empresa SpA';document.getElementById('nav-r').textContent=c.rut?'RUT: '+c.rut:'RUT: pendiente';}
+function lCfgF(){const c=D.cfg||{};document.getElementById('cn').value=c.nombre||'';document.getElementById('cr').value=c.rut||'';document.getElementById('cg').value=c.giro||'';document.getElementById('cre').value=c.regimen||'propyme';document.getElementById('cp').value=c.ppm||0.25;}
+function gC(){D.cfg={nombre:document.getElementById('cn').value||'Tu empresa SpA',rut:document.getElementById('cr').value||'',giro:document.getElementById('cg').value||'',regimen:document.getElementById('cre').value||'propyme',ppm:parseFloat(document.getElementById('cp').value)||0.25};save();lCfg();const btn=event.target;const o=btn.textContent;btn.textContent='✓ Guardado';setTimeout(()=>btn.textContent=o,1500)}
+function chPw(){
+  const actual=prompt('Contraseña actual:');if(!actual)return;
+  if(hpw(actual)!==JSON.parse(localStorage.getItem(MT_KEY)||'{}').hash){alert('Contraseña incorrecta.');return}
+  const nueva=prompt('Nueva contraseña (mín. 6 caracteres):');if(!nueva||nueva.length<6){alert('Mínimo 6 caracteres.');return}
+  const conf=prompt('Confirmar nueva contraseña:');if(nueva!==conf){alert('No coinciden.');return}
+  SK=nueva;localStorage.setItem(MT_KEY,JSON.stringify({hash:hpw(nueva)}));save();alert('✓ Contraseña cambiada y datos re-encriptados.');
+}
+function exp(){
+  const e=localStorage.getItem(SK_KEY);if(!e){alert('Sin datos para exportar.');return}
+  const bl=new Blob([JSON.stringify({v:1,enc:e})],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='cva_backup_'+new Date().toISOString().split('T')[0]+'.cva';a.click();URL.revokeObjectURL(a.href);
+}
+function imp(input){
+  const f=input.files[0];if(!f)return;
+  const rd=new FileReader();rd.onload=e=>{try{const obj=JSON.parse(e.target.result);if(!obj.enc){alert('Archivo inválido.');return}const pw=prompt('Contraseña del backup:');if(!pw)return;const d=dec(obj.enc,pw);if(!d){alert('Contraseña incorrecta o archivo corrupto.');return}D=d;SK=pw;localStorage.setItem(MT_KEY,JSON.stringify({hash:hpw(pw)}));save();lCfg();rD();rI();rRCV();cF29();alert('✓ Datos importados.');}catch(x){alert('Error al leer el archivo.');}};rd.readAsText(f);input.value='';
+}
+function bTodo(){if(!confirm('¿Borrar TODOS los datos? Acción irreversible.'))return;if(!confirm('Última confirmación: se borra todo.'))return;D={ingresos:[],compras:[],cfg:{nombre:'Tu empresa SpA',rut:'',giro:'',regimen:'propyme',ppm:0.25}};save();rD();rI();rRCV();cF29();alert('Datos borrados.')}
+
+initLock();
+</script>
+</body>
+</html>
