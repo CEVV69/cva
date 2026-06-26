@@ -561,7 +561,7 @@ async function sC(){
   inp.value='';aM('u',txt);hist.push({role:'user',content:txt});
   const b=document.getElementById('cbox');const tp=document.createElement('div');tp.className='cm ai';tp.id='tp';tp.innerHTML='<div class="cm-tag">CVA Asistente</div><div class="typing"><span></span><span></span><span></span></div>';b.appendChild(tp);b.scrollTop=b.scrollHeight;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:SYS,messages:hist.slice(-10)})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,system:SYS,messages:hist.slice(-10)})});
     const data=await r.json();document.getElementById('tp')?.remove();
     if(!r.ok){aM('ai','Error: '+(data.error?.message||'No autorizado. Revisa tu API key en Configuración.'));return}
     const rep=data.content?.[0]?.text||'Sin respuesta.';aM('ai',rep);hist.push({role:'assistant',content:rep});
