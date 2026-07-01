@@ -199,6 +199,7 @@ tr:last-child td{border-bottom:none}
     <button class="nb" onclick="go('calendario')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>Calendario<span class="nbdg nbdg-r" id="nb-cal">!</span></button>
     <div class="nav-sec">Contabilidad</div>
     <button class="nb" onclick="go('ingresos')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><rect x="2" y="5" width="20" height="12" rx="1"></rect><circle cx="12" cy="11" r="2"></circle></svg>Ingresos</button>
+    <button class="nb" onclick="go('gastos')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><path d="M12 5v14M5 12h14"></path></svg>Gastos</button>
     <button class="nb" onclick="go('libro')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>Libro RCV</button>
     <button class="nb" onclick="go('f29')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:6px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="13" x2="8" y2="13"></line><line x1="12" y1="17" x2="8" y2="17"></line></svg>Formulario 29</button>
     <div class="nav-sec">Apoyo</div>
@@ -269,6 +270,65 @@ tr:last-child td{border-bottom:none}
   <div class="card mb0">
     <div class="chd"><div class="ct">Ingresos registrados</div><select class="fi" id="ifil" style="width:auto;font-size:12px" onchange="rI()"></select></div>
     <div id="itbl"></div>
+  </div>
+</div>
+
+<div class="page" id="page-gastos">
+  <div class="ph"><div class="ph-t">Registrar gasto</div><div class="ph-s">Suscripciones, servicios y otros gastos operacionales de la empresa</div></div>
+  <div class="card">
+    <div class="ct" style="margin-bottom:14px">Nuevo gasto</div>
+    <div class="frow">
+      <div class="fg mb0"><label class="fl">Fecha</label><input type="date" class="fi" id="gf"></div>
+      <div class="fg mb0"><label class="fl">Categoría</label>
+        <select class="fi" id="gcat">
+          <option value="suscripcion">Suscripción / Servicio digital</option>
+          <option value="api">API / Créditos de plataforma</option>
+          <option value="hosting">Hosting / Dominio</option>
+          <option value="software">Software / Licencia</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Descripción</label><input type="text" class="fi" id="gdesc" placeholder="Ej: Supabase Pro — agosto, API Claude, Expo EAS"></div>
+    <div class="frow">
+      <div class="fg mb0">
+        <label class="fl">Monto en USD</label>
+        <input type="number" class="fi" id="gusd" placeholder="0.00" step="0.01" oninput="gCalcCLP()">
+        <div class="fh">Si el cobro es en USD</div>
+      </div>
+      <div class="fg mb0">
+        <label class="fl">Tipo de cambio USD/CLP</label>
+        <div class="flex gap8 ic"><input type="number" class="fi" id="gtc" value="960" oninput="gCalcCLP()" style="flex:1"><button class="btn bs bsm" onclick="gGetTc()">Actualizar</button></div>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg mb0">
+        <label class="fl">Monto en CLP</label>
+        <input type="number" class="fi" id="gclp" placeholder="0" readonly style="background:var(--surface2);cursor:not-allowed">
+        <div class="fh">Calculado automáticamente (USD × TC)</div>
+      </div>
+      <div class="fg mb0">
+        <label class="fl">¿Tiene factura con IVA?</label>
+        <select class="fi" id="giva">
+          <option value="si">Sí — genera crédito fiscal IVA</option>
+          <option value="no">No — solo gasto deducible</option>
+        </select>
+      </div>
+    </div>
+    <div class="alert al-i" style="margin-bottom:14px"><span class="al-ico">💡</span><div class="al-b">Suscripciones de Supabase, Expo, APIs extranjeras generalmente <strong>no tienen IVA chileno</strong> (son servicios digitales importados). De todas formas son gastos deducibles para el Impuesto a la Renta.</div></div>
+    <div class="flex gap8">
+      <button class="btn bp" onclick="gGuardar()" id="gbtn">Guardar gasto</button>
+      <button class="btn bs" onclick="gLimpiar()">Limpiar</button>
+    </div>
+  </div>
+  <div class="card mb0">
+    <div class="chd">
+      <div class="ct">Gastos registrados</div>
+      <select class="fi" id="gfil" style="width:auto;font-size:12px" onchange="rGastos()"></select>
+    </div>
+    <div id="gtbl"></div>
+    <div class="div" id="gtot-div" style="display:none"></div>
+    <div id="gtotales"></div>
   </div>
 </div>
 
@@ -402,7 +462,7 @@ function initApp(){
   const now=new Date();const h=now.getHours();
   document.getElementById('dsal').textContent=h<12?'Buenos días 👋':h<18?'Buenas tardes 👋':'Buenas noches 🌙';
   document.getElementById('dfecha').textContent=now.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  pobMeses();lCfg();rD();rCal();rEdu();rI();rRCV();cF29();sFH();
+  pobMeses();lCfg();rD();rCal();rEdu();rI();rGastos();rRCV();cF29();sFH();document.getElementById('gf').value=new Date().toISOString().split('T')[0];
 }
 function sFH(){const f=document.getElementById('if');if(f)f.value=new Date().toISOString().split('T')[0]}
 function go(id){
@@ -410,11 +470,11 @@ function go(id){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('page-'+id).classList.add('on');
   document.querySelectorAll('.nb').forEach(b=>{if((b.getAttribute('onclick')||'').includes("'"+id+"'"))b.classList.add('on')});
-  if(id==='f29')cF29();if(id==='libro')rRCV();if(id==='ingresos')rI();if(id==='dashboard')rD();if(id==='config')lCfgF();
+  if(id==='f29')cF29();if(id==='libro')rRCV();if(id==='ingresos')rI();if(id==='gastos')rGastos();if(id==='dashboard')rD();if(id==='config')lCfgF();
 }
 function pobMeses(){
   const now=new Date();
-  ['ifil','f29m'].forEach(id=>{const s=document.getElementById(id);if(!s)return;s.innerHTML='';for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const o=document.createElement('option');o.value=d.getFullYear()+'-'+(d.getMonth()+1);o.textContent=MES[d.getMonth()]+' '+d.getFullYear();if(i===0)o.selected=true;s.appendChild(o);}});
+  ['ifil','f29m','gfil'].forEach(id=>{const s=document.getElementById(id);if(!s)return;s.innerHTML='';for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const o=document.createElement('option');o.value=d.getFullYear()+'-'+(d.getMonth()+1);o.textContent=MES[d.getMonth()]+' '+d.getFullYear();if(i===0)o.selected=true;s.appendChild(o);}});
 }
 function gM(id){const v=(document.getElementById(id)||{}).value||'';if(!v){const n=new Date();return{y:n.getFullYear(),m:n.getMonth()+1}}const[y,m]=v.split('-').map(Number);return{y,m}}
 function iM(y,m){return D.ingresos.filter(i=>{const d=new Date(i.fecha);return d.getFullYear()===y&&(d.getMonth()+1)===m})}
@@ -469,7 +529,38 @@ function cCLP(){
   const u=parseFloat(document.getElementById('iu').value)||0;
   const tc=parseFloat(document.getElementById('itc').value)||960;
   document.getElementById('ic').value=u?Math.round(u*tc):'';
-}function gI(){
+}// GASTOS
+function gGetTc(){fetch('https://api.exchangerate-api.com/v4/latest/USD').then(r=>r.json()).then(d=>{const c=d.rates?.CLP;if(c){document.getElementById('gtc').value=Math.round(c);gCalcCLP();}}).catch(()=>{})}
+function gCalcCLP(){const u=parseFloat(document.getElementById('gusd').value)||0;const tc=parseFloat(document.getElementById('gtc').value)||960;document.getElementById('gclp').value=u?Math.round(u*tc):'';}
+function gGuardar(){
+  const f=document.getElementById('gf').value;
+  const usd=parseFloat(document.getElementById('gusd').value)||0;
+  const clp=parseFloat(document.getElementById('gclp').value)||0;
+  if(!f||!clp){alert('Completa fecha y monto.');return}
+  if(!D.gastos)D.gastos=[];
+  D.gastos.push({id:Date.now(),fecha:f,cat:document.getElementById('gcat').value,desc:document.getElementById('gdesc').value,usd,clp,iva:document.getElementById('giva').value,tc:parseFloat(document.getElementById('gtc').value)||960});
+  save();rGastos();
+  const btn=document.getElementById('gbtn');const o=btn.textContent;btn.textContent='✓ Guardado';setTimeout(()=>btn.textContent=o,1800);
+  gLimpiar();
+}
+function gLimpiar(){['gdesc','gusd','gclp'].forEach(id=>document.getElementById(id).value='');document.getElementById('gf').value=new Date().toISOString().split('T')[0];}
+function delG(id){if(!confirm('¿Eliminar este gasto?'))return;D.gastos=D.gastos.filter(g=>g.id!==id);save();rGastos();}
+function rGastos(){
+  if(!D.gastos)D.gastos=[];
+  const{y,m}=gM('gfil');
+  const lista=D.gastos.filter(g=>{const d=new Date(g.fecha);return d.getFullYear()===y&&(d.getMonth()+1)===m});
+  const el=document.getElementById('gtbl');
+  const CATS={suscripcion:'Suscripción',api:'API/Créditos',hosting:'Hosting',software:'Software',otro:'Otro'};
+  if(!lista.length){el.innerHTML='<div class="empty"><div class="ei2">🧾</div>Sin gastos en este período.</div>';document.getElementById('gtot-div').style.display='none';document.getElementById('gtotales').innerHTML='';return}
+  el.innerHTML='<table><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>IVA</th><th class="tr">USD</th><th class="tr">CLP</th><th style="width:50px;text-align:center">Acción</th></tr></thead><tbody>'+
+    lista.map(g=>`<tr><td>${new Date(g.fecha).toLocaleDateString('es-CL')}</td><td><span class="bdg bdg-gr">${CATS[g.cat]||g.cat}</span></td><td>${g.desc||'—'}</td><td><span class="bdg ${g.iva==='si'?'bdg-g':'bdg-gold'}">${g.iva==='si'?'Con IVA':'Sin IVA'}</span></td><td class="tr tm">${g.usd?'US$'+g.usd.toFixed(2):'—'}</td><td class="tr tm">${fmt(g.clp)}</td><td style="text-align:center"><button class="btn bd bxs" onclick="delG(${g.id})">✕</button></td></tr>`).join('')+'</tbody></table>';
+  const total=lista.reduce((a,g)=>a+g.clp,0);
+  const conIva=lista.filter(g=>g.iva==='si').reduce((a,g)=>a+g.clp,0);
+  const creditoIva=Math.round(conIva*0.19/1.19);
+  document.getElementById('gtot-div').style.display='block';
+  document.getElementById('gtotales').innerHTML=`<div class="flex jb" style="font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">Total gastos del período</span><strong>${fmt(total)}</strong></div><div class="flex jb" style="font-size:13px"><span style="color:var(--green-text);font-weight:600">IVA crédito fiscal recuperable</span><strong style="color:var(--green-text)">${fmt(creditoIva)}</strong></div>`;
+}
+function gI(){
   const f=document.getElementById('if').value;const c=parseFloat(document.getElementById('ic').value)||0;
   if(!f||!c){alert('Completa fecha y monto en CLP.');return}
   D.ingresos.push({id:Date.now(),fecha:f,fuente:document.getElementById('ifu').value,desc:document.getElementById('id').value,usd:parseFloat(document.getElementById('iu').value)||0,clp:c,tipo:document.getElementById('iti').value,tc:parseFloat(document.getElementById('itc').value)||960});
