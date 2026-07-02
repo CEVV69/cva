@@ -587,6 +587,7 @@ function gGuardar(){
 }
 function gLimpiar(){['gdesc','gusd','gclp'].forEach(id=>document.getElementById(id).value='');document.getElementById('gf').value=new Date().toISOString().split('T')[0];}
 function delG(id){if(!confirm('¿Eliminar este gasto?'))return;D.gastos=D.gastos.filter(g=>g.id!==id);save();rGastos();}
+function delC(id){if(!confirm('¿Eliminar esta compra?'))return;D.compras=D.compras.filter(c=>c.id!==id);save();rRCV();cF29();}
 function rGastos(){
   if(!D.gastos)D.gastos=[];
   const{y,m}=gM('gfil');
@@ -630,7 +631,7 @@ function rRCV(){
   const cIva=D.compras.reduce((a,c)=>a+Math.round((c.monto||0)*.19),0);document.getElementById('rcr').textContent=fmt(cIva);
   const rct=document.getElementById('rct');
   if(!D.compras.length)rct.innerHTML='<div class="empty"><div class="ei2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>Sin compras. Las compras con factura te dan crédito fiscal.</div>';
-  else rct.innerHTML='<table><thead><tr><th>Fecha</th><th>Descripción</th><th class="tr">Neto</th><th class="tr">IVA crédito</th></tr></thead><tbody>'+D.compras.map(c=>`<tr><td>${new Date(c.fecha).toLocaleDateString('es-CL')}</td><td>${c.desc||'—'}</td><td class="tr tm">${fmt(c.monto)}</td><td class="tr tm" style="color:var(--green-text)">${fmt(Math.round(c.monto*.19))}</td></tr>`).join('')+'</tbody></table>';
+  else rct.innerHTML='<table><thead><tr><th>Fecha</th><th>Descripción</th><th class="tr">Neto</th><th class="tr">IVA crédito</th><th style="width:50px;text-align:center">Acción</th></tr></thead><tbody>'+D.compras.map(c=>`<tr><td>${new Date(c.fecha).toLocaleDateString('es-CL')}</td><td>${c.desc||'—'}</td><td class="tr tm">${fmt(c.monto)}</td><td class="tr tm" style="color:var(--green-text)">${fmt(Math.round(c.monto*.19))}</td><td style="text-align:center"><button class="btn bd bxs" onclick="delC(${c.id})">✕</button></td></tr>`).join('')+'</tbody></table>';
 }
 function aC(){const mn=prompt('Monto NETO de la compra en CLP (sin IVA):');if(!mn||isNaN(mn))return;const ds=prompt('Descripción (Ej: Dominio web, suscripción):');D.compras.push({id:Date.now(),monto:parseFloat(mn),desc:ds||'Compra',fecha:new Date().toISOString().split('T')[0]});save();rRCV();cF29()}
 
