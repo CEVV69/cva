@@ -431,36 +431,73 @@ tr:last-child td{border-bottom:none}
 <script>
 const MES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const SK_KEY='cva_enc_v1',MT_KEY='cva_meta_v1';
-let SK='',D={ingresos:[],compras:[],cfg:{nombre:'Mi empresa',rut:'',giro:'Desarrollo de software y aplicaciones móviles',regimen:'propyme',ppm:0.25}};
+const SB_URL='https://ygebshtpuozumkujmzei.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZWJzaHRwdW96dW1rdWptemVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMzI1NzEsImV4cCI6MjA5ODYwODU3MX0.bwEkNtTd0mbKODHklAyeXF2qtjsPIaI4gBwNSMDQTW4';
+const SB_USER='claudio';
+let SK='',D={ingresos:[],compras:[],gastos:[],cfg:{nombre:'Mi empresa',rut:'',giro:'Desarrollo de software y aplicaciones móviles',regimen:'propyme',ppm:0.25}};
 
 function enc(d,pw){return CryptoJS.AES.encrypt(JSON.stringify(d),pw).toString()}
 function dec(e,pw){try{const b=CryptoJS.AES.decrypt(e,pw);const s=b.toString(CryptoJS.enc.Utf8);return s?JSON.parse(s):null}catch(x){return null}}
 function hpw(pw){return CryptoJS.SHA256(pw).toString()}
-function save(){if(SK)localStorage.setItem(SK_KEY,enc(D,SK))}
 const fmt=n=>new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(Math.round(n||0));
+
+async function sbSave(){
+  if(!SK)return;
+  const datos=enc(D,SK);
+  await fetch(`${SB_URL}/rest/v1/cva_datos`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'resolution=merge-duplicates'},
+    body:JSON.stringify({usuario:SB_USER,datos})
+  });
+}
+
+async function sbLoad(){
+  const r=await fetch(`${SB_URL}/rest/v1/cva_datos?usuario=eq.${SB_USER}&select=datos`,{
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+  });
+  const rows=await r.json();
+  if(rows&&rows[0]){return rows[0].datos;}
+  return null;
+}
+
+function save(){
+  if(!SK)return;
+  localStorage.setItem(SK_KEY,enc(D,SK));
+  sbSave();
+}
 
 // LOCK
 const meta=JSON.parse(localStorage.getItem(MT_KEY)||'{}');
 const isNew=!meta.hash;
 function initLock(){
-  if(isNew){document.getElementById('ls').textContent='Primera vez — crea tu contraseña';document.getElementById('ll').textContent='Crear contraseña';document.getElementById('lb').textContent='Crear y entrar';document.getElementById('lp2').style.display='block';document.getElementById('lh').innerHTML='<strong><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Importante:</strong> Esta contraseña encripta todos tus datos. Si la olvidas, no hay recuperación. Guárdala en un lugar seguro.';}
+  if(isNew){document.getElementById('ls').textContent='Primera vez — crea tu contraseña';document.getElementById('ll').textContent='Crear contraseña';document.getElementById('lb').textContent='Crear y entrar';document.getElementById('lp2').style.display='block';document.getElementById('lh').innerHTML='<strong>Importante:</strong> Esta contraseña encripta todos tus datos. Si la olvidas, no hay recuperación. Guárdala en un lugar seguro.';}
   ['lp','lp2'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')lockAction()}));
 }
-function lockAction(){
+async function lockAction(){
   const pw=document.getElementById('lp').value;
   const er=document.getElementById('le');
   if(pw.length<6){er.textContent='Mínimo 6 caracteres.';return}
+  const lb=document.getElementById('lb');lb.textContent='Cargando...';lb.disabled=true;
   if(isNew){
     const pw2=document.getElementById('lp2').value;
-    if(pw!==pw2){er.textContent='Las contraseñas no coinciden.';return}
+    if(pw!==pw2){er.textContent='Las contraseñas no coinciden.';lb.textContent='Crear y entrar';lb.disabled=false;return}
     SK=pw;localStorage.setItem(MT_KEY,JSON.stringify({hash:hpw(pw)}));save();enterApp();
   }else{
-    if(hpw(pw)!==meta.hash){er.textContent='Contraseña incorrecta.';return}
-    SK=pw;const e=localStorage.getItem(SK_KEY);if(e){const d=dec(e,SK);if(d)D=d;}enterApp();
+    if(hpw(pw)!==meta.hash){er.textContent='Contraseña incorrecta.';lb.textContent='Entrar';lb.disabled=false;return}
+    SK=pw;
+    // Intentar cargar desde Supabase primero
+    try{
+      const remoto=await sbLoad();
+      if(remoto){const d=dec(remoto,SK);if(d){D=d;localStorage.setItem(SK_KEY,remoto);}}
+      else{const local=localStorage.getItem(SK_KEY);if(local){const d=dec(local,SK);if(d)D=d;}}
+    }catch(e){
+      const local=localStorage.getItem(SK_KEY);if(local){const d=dec(local,SK);if(d)D=d;}
+    }
+    enterApp();
   }
 }
 function enterApp(){document.getElementById('lock-screen').style.display='none';document.getElementById('app').classList.add('v');initApp()}
-function lockOut(){if(!confirm('¿Cerrar sesión?'))return;SK='';D={ingresos:[],compras:[],cfg:{nombre:'Mi empresa',rut:'',giro:'',regimen:'propyme',ppm:0.25}};document.getElementById('lock-screen').style.display='flex';document.getElementById('app').classList.remove('v');document.getElementById('lp').value='';document.getElementById('le').textContent='';}
+function lockOut(){if(!confirm('¿Cerrar sesión?'))return;SK='';D={ingresos:[],compras:[],gastos:[],cfg:{nombre:'Mi empresa',rut:'',giro:'',regimen:'propyme',ppm:0.25}};document.getElementById('lock-screen').style.display='flex';document.getElementById('app').classList.remove('v');document.getElementById('lp').value='';document.getElementById('le').textContent='';}
 
 // APP
 function initApp(){
