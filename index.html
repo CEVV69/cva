@@ -391,6 +391,7 @@ tr:last-child td{border-bottom:none}
       <button class="btn bs" onclick="pF29()">Imprimir resumen</button>
     </div>
     <div class="div"></div>
+    <div class="fg" style="max-width:240px"><label class="fl">Fecha en que declaraste en el SII</label><input type="date" class="fi" id="f29-fecha"></div>
     <div class="flex gap8">
       <button class="btn bp" style="background:var(--green)" onclick="marcarDeclarado('sin')">Marcar: Sin movimiento</button>
       <button class="btn bp" onclick="marcarDeclarado('con')">Marcar: Declarado (con pago)</button>
@@ -726,6 +727,10 @@ function cF29(){
   const el=document.getElementById('f29tot');el.className='f29t '+(totP===0?'tz':totP<0?'tn':'tp');
   rF29Estado();
 }
+function locISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function fISO(f){return(f||'').length===10?f:locISO(new Date(f))}
+function fmtF(f){return new Date(fISO(f)+'T12:00:00').toLocaleDateString('es-CL')}
+function fechaDecl(){const el=document.getElementById('f29-fecha');return(el&&el.value)||locISO(new Date())}
 function getDeclKey(y,m){return y+'-'+m}
 function marcarDeclarado(tipo){
   const{y,m}=gM('f29m');
@@ -733,7 +738,7 @@ function marcarDeclarado(tipo){
   const key=getDeclKey(y,m);
   const monto=parseInt((document.getElementById('cod91').textContent||'0').replace(/[^0-9-]/g,''))||0;
   D.declaraciones=D.declaraciones.filter(d=>d.key!==key);
-  D.declaraciones.push({key,y,m,tipo,monto,fecha:new Date().toISOString()});
+  D.declaraciones.push({key,y,m,tipo,monto,fecha:fechaDecl()});
   save();rF29Estado();rF29Historial();rD();rCal();
 }
 function desmarcarDeclarado(){
@@ -747,11 +752,12 @@ function getDecl(y,m){return(D.declaraciones||[]).find(d=>d.key===getDeclKey(y,m
 function rF29Estado(){
   const{y,m}=gM('f29m');
   const d=getDecl(y,m);
+  const fi=document.getElementById('f29-fecha');if(fi&&!fi.value)fi.value=locISO(new Date());
   const el=document.getElementById('f29-estado-decl');
   if(!el)return;
   if(d){
     const txt=d.tipo==='sin'?'Sin movimiento':'Declarado — pagado '+fmt(d.monto||0);
-    const fecha=new Date(d.fecha).toLocaleDateString('es-CL');
+    const fecha=fmtF(d.fecha);
     el.innerHTML=`<div class="alert al-ok" style="margin-top:12px"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><div class="al-b"><strong>${MES[m-1]} ${y} ya fue declarado</strong>${txt} — marcado el ${fecha}</div></div>`;
   } else {
     el.innerHTML='';
@@ -762,8 +768,8 @@ function rF29Historial(){
   if(!el)return;
   const lista=[...(D.declaraciones||[])].sort((a,b)=>(b.y*12+b.m)-(a.y*12+a.m));
   if(!lista.length){el.innerHTML='<div class="empty"><div class="ei2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>Aún no has marcado ninguna declaración.</div>';return}
-  el.innerHTML='<table><thead><tr><th>Período</th><th>Estado</th><th class="tr">Monto declarado</th><th>Fecha marcada</th></tr></thead><tbody>'+
-    lista.map(d=>`<tr><td>${MES[d.m-1]} ${d.y}</td><td><span class="bdg ${d.tipo==='sin'?'bdg-gr':'bdg-g'}">${d.tipo==='sin'?'Sin movimiento':'Con pago'}</span></td><td class="tr tm">${d.tipo==='sin'?'—':fmt(d.monto||0)}</td><td>${new Date(d.fecha).toLocaleDateString('es-CL')}</td></tr>`).join('')+'</tbody></table>';
+  el.innerHTML='<table><thead><tr><th>Período</th><th>Estado</th><th class="tr">Monto declarado</th><th>Fecha declarada</th></tr></thead><tbody>'+
+    lista.map(d=>`<tr><td>${MES[d.m-1]} ${d.y}</td><td><span class="bdg ${d.tipo==='sin'?'bdg-gr':'bdg-g'}">${d.tipo==='sin'?'Sin movimiento':'Con pago'}</span></td><td class="tr tm">${d.tipo==='sin'?'—':fmt(d.monto||0)}</td><td>${fmtF(d.fecha)}</td></tr>`).join('')+'</tbody></table>';
 }
 function pF29(){
   const{y,m}=gM('f29m');
