@@ -213,6 +213,7 @@ tr:last-child td{border-bottom:none}
   </div>
   <div class="nav-ft">
     <div class="ep"><div class="ep-n" id="nav-n">Mi empresa</div><div class="ep-r" id="nav-r">RUT: pendiente</div></div>
+    <div id="sync-st" style="font-size:11px;color:var(--text3);margin-top:8px;padding:0 4px"></div>
     <button class="lo-btn" onclick="lockOut()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Cerrar sesión</button>
   </div>
 </nav>
@@ -229,7 +230,7 @@ tr:last-child td{border-bottom:none}
     <div class="mc gold"><div class="mc-l">PPM estimado</div><div class="mc-v" id="dppm">$0</div><div class="mc-s">Pago provisional</div></div>
   </div>
   <div class="card">
-    <div class="chd"><div class="ct">Estado del F29 — mes actual</div><span class="bdg" id="f29b">Pendiente</span></div>
+    <div class="chd"><div class="ct" id="f29-card-title">Estado del F29</div><span class="bdg" id="f29b">Pendiente</span></div>
     <div class="prog"><div class="pf" id="f29p" style="width:0%;background:var(--gold)"></div></div>
     <div style="font-size:12px;color:var(--text2)" id="f29pt">Registra ingresos del mes para preparar tu declaración.</div>
     <div class="flex gap8 mt16">
@@ -384,10 +385,21 @@ tr:last-child td{border-bottom:none}
       <div class="f29r f29sep"><div class="f29c" style="color:var(--gold-text)">C38</div><div class="f29l" style="font-weight:700;color:var(--text)">PPM a pagar</div><div class="f29v" style="color:var(--gold-text)" id="c38">$0</div></div>
     </div>
     <div class="f29t tp" id="f29tot"><div class="f29tl">Código 91 — Total a pagar al SII</div><div class="f29tv" id="cod91">$0</div></div>
+    <div id="f29-estado-decl"></div>
     <div class="flex gap8 mt16">
       <button class="btn bp" onclick="window.open('https://www.sii.cl/servicios_online/1042-3264.html','_blank')">Ir al SII →</button>
       <button class="btn bs" onclick="pF29()">Imprimir resumen</button>
     </div>
+    <div class="div"></div>
+    <div class="flex gap8">
+      <button class="btn bp" style="background:var(--green)" onclick="marcarDeclarado('sin')">Marcar: Sin movimiento</button>
+      <button class="btn bp" onclick="marcarDeclarado('con')">Marcar: Declarado (con pago)</button>
+      <button class="btn bs" onclick="desmarcarDeclarado()">Deshacer</button>
+    </div>
+  </div>
+  <div class="card mb0">
+    <div class="chd"><div class="ct">Historial de declaraciones</div></div>
+    <div id="f29-historial"></div>
   </div>
 </div>
 
@@ -421,7 +433,7 @@ tr:last-child td{border-bottom:none}
   </div>
   <div class="card mb0">
     <div class="ct" style="margin-bottom:10px">Acerca de CVA</div>
-    <div style="font-size:13px;color:var(--text2);line-height:1.7"><strong>CVA v1.0</strong> — Contador Virtual Autónomo<br>App personal para gestión tributaria ante el SII de Chile.<br>Datos almacenados <strong>solo en este navegador</strong>, encriptados con AES-256.<br><br><span style="color:var(--text3)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Esta app es una herramienta de apoyo. Para situaciones complejas, consulta a un contador certificado.</span></div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7"><strong>CVA v1.0</strong> — Contador Virtual Autónomo<br>App personal para gestión tributaria ante el SII de Chile.<br>Datos sincronizados en la nube (Supabase) y respaldados localmente, <strong>encriptados con AES-256</strong> antes de salir del navegador.<br><br><span style="color:var(--text3)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Esta app es una herramienta de apoyo. Para situaciones complejas, consulta a un contador certificado.</span></div>
   </div>
 </div>
 
@@ -434,73 +446,110 @@ const SK_KEY='cva_enc_v1',MT_KEY='cva_meta_v1';
 const SB_URL='https://ygebshtpuozumkujmzei.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnZWJzaHRwdW96dW1rdWptemVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMzI1NzEsImV4cCI6MjA5ODYwODU3MX0.bwEkNtTd0mbKODHklAyeXF2qtjsPIaI4gBwNSMDQTW4';
 const SB_USER='claudio';
-let SK='',D={ingresos:[],compras:[],gastos:[],cfg:{nombre:'Mi empresa',rut:'',giro:'Desarrollo de software y aplicaciones móviles',regimen:'propyme',ppm:0.25}};
+let SK='',D={ingresos:[],compras:[],gastos:[],declaraciones:[],cfg:{nombre:'Mi empresa',rut:'',giro:'Desarrollo de software y aplicaciones móviles',regimen:'propyme',ppm:0.25}};
 
 function enc(d,pw){return CryptoJS.AES.encrypt(JSON.stringify(d),pw).toString()}
 function dec(e,pw){try{const b=CryptoJS.AES.decrypt(e,pw);const s=b.toString(CryptoJS.enc.Utf8);return s?JSON.parse(s):null}catch(x){return null}}
 function hpw(pw){return CryptoJS.SHA256(pw).toString()}
 const fmt=n=>new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(Math.round(n||0));
 
-async function sbSave(){
-  if(!SK)return;
-  const datos=enc(D,SK);
-  await fetch(`${SB_URL}/rest/v1/cva_datos`,{
-    method:'POST',
-    headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'resolution=merge-duplicates'},
-    body:JSON.stringify({usuario:SB_USER,datos})
-  });
+let SB_READY=false,LOCK_MODE='login',_sbq=Promise.resolve();
+function setSync(st){
+  const el=document.getElementById('sync-st');if(!el)return;
+  const m={ok:['Sincronizado','var(--green)'],saving:['Guardando...','var(--gold)'],error:['Error al sincronizar','var(--red)'],off:['Sin conexion a la nube - recarga para sincronizar','var(--red)']};
+  const x=m[st]||m.off;
+  el.innerHTML='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+x[1]+';margin-right:6px"></span>'+x[0];
 }
+async function sbPush(){
+  if(!SK||!SB_READY)return;
+  setSync('saving');
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/cva_datos?on_conflict=usuario`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({usuario:SB_USER,datos:enc(D,SK),updated_at:new Date().toISOString()})
+    });
+    setSync(r.ok?'ok':'error');
+  }catch(e){setSync('error')}
+}
+function sbSave(){if(!SK||!SB_READY)return;_sbq=_sbq.then(sbPush);return _sbq}
 
 async function sbLoad(){
-  const r=await fetch(`${SB_URL}/rest/v1/cva_datos?usuario=eq.${SB_USER}&select=datos`,{
-    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
-  });
-  const rows=await r.json();
-  if(rows&&rows[0]){return rows[0].datos;}
-  return null;
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/cva_datos?usuario=eq.${SB_USER}&select=datos`,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+    if(!r.ok)return{ok:false};
+    const rows=await r.json();
+    return{ok:true,datos:(rows&&rows[0])?rows[0].datos:null};
+  }catch(e){return{ok:false}}
 }
 
 function save(){
   if(!SK)return;
+  D.mod=Date.now();
   localStorage.setItem(SK_KEY,enc(D,SK));
   sbSave();
 }
+const cnt=x=>x?((x.ingresos||[]).length+(x.compras||[]).length+(x.gastos||[]).length+(x.declaraciones||[]).length):0;
+// a = nube, b = este equipo. Gana el mas reciente; si no hay fecha, gana el que tiene mas registros
+function elegir(a,b){
+  if(!a)return b;if(!b)return a;
+  const ma=a.mod||0,mb=b.mod||0;
+  if(ma!==mb)return ma>mb?a:b;
+  return cnt(b)>cnt(a)?b:a;
+}
 
 // LOCK
-const meta=JSON.parse(localStorage.getItem(MT_KEY)||'{}');
-const isNew=!meta.hash;
-function initLock(){
-  if(isNew){document.getElementById('ls').textContent='Primera vez — crea tu contraseña';document.getElementById('ll').textContent='Crear contraseña';document.getElementById('lb').textContent='Crear y entrar';document.getElementById('lp2').style.display='block';document.getElementById('lh').innerHTML='<strong>Importante:</strong> Esta contraseña encripta todos tus datos. Si la olvidas, no hay recuperación. Guárdala en un lugar seguro.';}
-  ['lp','lp2'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')lockAction()}));
+async function initLock(){
+  if(!initLock.b){initLock.b=1;['lp','lp2'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')lockAction()}));}
+  const lb=document.getElementById('lb'),ls=document.getElementById('ls'),ll=document.getElementById('ll'),lh=document.getElementById('lh'),p2=document.getElementById('lp2');
+  lb.disabled=true;lb.textContent='Conectando...';
+  const rem=await sbLoad();
+  const hay=(rem.ok&&rem.datos)||localStorage.getItem(SK_KEY);
+  if(hay){LOCK_MODE='login';ls.textContent='Ingresa tu contraseña para acceder';ll.textContent='Contraseña';p2.style.display='none';lh.innerHTML='';lb.textContent='Entrar';}
+  else if(rem.ok){LOCK_MODE='crear';ls.textContent='Primera vez — crea tu contraseña';ll.textContent='Crear contraseña';p2.style.display='block';lb.textContent='Crear y entrar';lh.innerHTML='<strong>Importante:</strong> Esta contraseña encripta todos tus datos. Si la olvidas, no hay recuperación. Guárdala en un lugar seguro.';}
+  else{LOCK_MODE='sinred';ls.textContent='Sin conexión con la nube';lh.textContent='Para no duplicar ni perder datos, conéctate a internet y reintenta.';lb.textContent='Reintentar';}
+  lb.disabled=false;
 }
 async function lockAction(){
+  const er=document.getElementById('le');er.textContent='';
+  if(LOCK_MODE==='sinred'){initLock();return}
   const pw=document.getElementById('lp').value;
-  const er=document.getElementById('le');
+  const lb=document.getElementById('lb');const lbTxt=lb.textContent;
   if(pw.length<6){er.textContent='Mínimo 6 caracteres.';return}
-  const lb=document.getElementById('lb');lb.textContent='Cargando...';lb.disabled=true;
-  if(isNew){
-    const pw2=document.getElementById('lp2').value;
-    if(pw!==pw2){er.textContent='Las contraseñas no coinciden.';lb.textContent='Crear y entrar';lb.disabled=false;return}
-    SK=pw;localStorage.setItem(MT_KEY,JSON.stringify({hash:hpw(pw)}));save();enterApp();
-  }else{
-    if(hpw(pw)!==meta.hash){er.textContent='Contraseña incorrecta.';lb.textContent='Entrar';lb.disabled=false;return}
-    SK=pw;
-    // Intentar cargar desde Supabase primero
-    try{
-      const remoto=await sbLoad();
-      if(remoto){const d=dec(remoto,SK);if(d){D=d;localStorage.setItem(SK_KEY,remoto);}}
-      else{const local=localStorage.getItem(SK_KEY);if(local){const d=dec(local,SK);if(d)D=d;}}
-    }catch(e){
-      const local=localStorage.getItem(SK_KEY);if(local){const d=dec(local,SK);if(d)D=d;}
-    }
-    enterApp();
+  if(LOCK_MODE==='crear'&&pw!==document.getElementById('lp2').value){er.textContent='Las contraseñas no coinciden.';return}
+  lb.disabled=true;lb.textContent='Cargando...';
+  const fail=m=>{er.textContent=m;lb.textContent=lbTxt;lb.disabled=false};
+  const rem=await sbLoad();
+  const localEnc=localStorage.getItem(SK_KEY);
+  const hayRemoto=rem.ok&&!!rem.datos;
+  const Dr=hayRemoto?dec(rem.datos,pw):null;
+  const Dl=localEnc?dec(localEnc,pw):null;
+  if(LOCK_MODE==='crear'){
+    if(hayRemoto||localEnc)return fail('Ya existen datos guardados. Recarga la página e ingresa tu contraseña.');
+    if(!rem.ok)return fail('Sin conexión a la nube. Reintenta para no duplicar datos.');
+    SK=pw;SB_READY=true;localStorage.setItem(MT_KEY,JSON.stringify({hash:hpw(pw)}));save();enterApp();return;
   }
+  if(!Dr&&!Dl)return fail('Contraseña incorrecta.');
+  if(hayRemoto&&!Dr&&Dl){
+    if(!confirm('Esta contraseña NO abre los datos guardados en la nube (puede ser una contraseña distinta). Si continúas, los datos de la nube se REEMPLAZARÁN por los de este equipo. ¿Continuar?'))return fail('Cancelado. Prueba con tu contraseña original.');
+  }
+  SK=pw;
+  D=elegir(Dr,Dl);
+  if(!D.declaraciones)D.declaraciones=[];
+  SB_READY=rem.ok;
+  localStorage.setItem(MT_KEY,JSON.stringify({hash:hpw(pw)}));
+  localStorage.setItem(SK_KEY,enc(D,SK));
+  if(!rem.ok)setSync('off');
+  else if(D!==Dr)sbSave();
+  else setSync('ok');
+  enterApp();
 }
 function enterApp(){document.getElementById('lock-screen').style.display='none';document.getElementById('app').classList.add('v');initApp()}
-function lockOut(){if(!confirm('¿Cerrar sesión?'))return;SK='';D={ingresos:[],compras:[],gastos:[],cfg:{nombre:'Mi empresa',rut:'',giro:'',regimen:'propyme',ppm:0.25}};document.getElementById('lock-screen').style.display='flex';document.getElementById('app').classList.remove('v');document.getElementById('lp').value='';document.getElementById('le').textContent='';}
+function lockOut(){if(!confirm('¿Cerrar sesión?'))return;SK='';SB_READY=false;D={ingresos:[],compras:[],gastos:[],declaraciones:[],cfg:{nombre:'Mi empresa',rut:'',giro:'',regimen:'propyme',ppm:0.25}};document.getElementById('lock-screen').style.display='flex';document.getElementById('app').classList.remove('v');document.getElementById('lp').value='';document.getElementById('le').textContent='';}
 
 // APP
 function initApp(){
+  if(!D.declaraciones)D.declaraciones=[];
   const now=new Date();const h=now.getHours();
   document.getElementById('dsal').textContent=h<12?'Buenos días':h<18?'Buenas tardes':'Buenas noches';
   document.getElementById('dfecha').textContent=now.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -512,11 +561,13 @@ function go(id){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('page-'+id).classList.add('on');
   document.querySelectorAll('.nb').forEach(b=>{if((b.getAttribute('onclick')||'').includes("'"+id+"'"))b.classList.add('on')});
-  if(id==='f29')cF29();if(id==='libro')rRCV();if(id==='ingresos')rI();if(id==='gastos')rGastos();if(id==='dashboard')rD();if(id==='config')lCfgF();
+  if(id==='f29'){cF29();rF29Historial();}if(id==='libro')rRCV();if(id==='ingresos')rI();if(id==='gastos')rGastos();if(id==='dashboard')rD();if(id==='config')lCfgF();
 }
 function pobMeses(){
   const now=new Date();
-  ['ifil','f29m','gfil'].forEach(id=>{const s=document.getElementById(id);if(!s)return;s.innerHTML='';for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const o=document.createElement('option');o.value=d.getFullYear()+'-'+(d.getMonth()+1);o.textContent=MES[d.getMonth()]+' '+d.getFullYear();if(i===0)o.selected=true;s.appendChild(o);}});
+  ['ifil','gfil'].forEach(id=>{const s=document.getElementById(id);if(!s)return;s.innerHTML='';for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const o=document.createElement('option');o.value=d.getFullYear()+'-'+(d.getMonth()+1);o.textContent=MES[d.getMonth()]+' '+d.getFullYear();if(i===0)o.selected=true;s.appendChild(o);}});
+  const f29s=document.getElementById('f29m');
+  if(f29s){f29s.innerHTML='';for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const o=document.createElement('option');o.value=d.getFullYear()+'-'+(d.getMonth()+1);o.textContent=MES[d.getMonth()]+' '+d.getFullYear();if(i===1)o.selected=true;f29s.appendChild(o);}}
 }
 function gM(id){const v=(document.getElementById(id)||{}).value||'';if(!v){const n=new Date();return{y:n.getFullYear(),m:n.getMonth()+1}}const[y,m]=v.split('-').map(Number);return{y,m}}
 function iM(y,m){return D.ingresos.filter(i=>{const d=new Date(i.fecha);return d.getFullYear()===y&&(d.getMonth()+1)===m})}
@@ -529,13 +580,27 @@ function rD(){
   const tot=af+ex;const iva=Math.round(af*.19);const r=D.cfg.ppm||0.25;const ppm=Math.round(tot*r/100);
   document.getElementById('dm').textContent=MES[now.getMonth()]+' '+now.getFullYear();
   document.getElementById('di').textContent=fmt(tot);document.getElementById('diva').textContent=fmt(iva);document.getElementById('dppm').textContent=fmt(ppm);
-  document.getElementById('f29p').style.width=(tot>0?65:0)+'%';document.getElementById('f29p').style.background=tot>0?'var(--green)':'var(--gold)';
-  document.getElementById('f29pt').textContent=tot>0?'Datos disponibles. Revisa el F29 antes del día 20.':'Registra ingresos para preparar tu declaración.';
-  const b=document.getElementById('f29b');if(tot>0){b.textContent='Con datos';b.className='bdg bdg-g';}else{b.textContent='Pendiente';b.className='bdg bdg-gold';}
+  // El F29 con plazo vigente (hasta día 20) es el del MES ANTERIOR
+  const prevD=new Date(now.getFullYear(),now.getMonth()-1,1);
+  const py=prevD.getFullYear(),pm=prevD.getMonth()+1;
+  const listaPrev=iM(py,pm);
+  const totPrev=listaPrev.reduce((a,i)=>a+i.clp,0);
+  const decl=getDecl(py,pm);
+  document.getElementById('f29-card-title').textContent='Estado del F29 — '+MES[pm-1]+' (mes a declarar)';
   const dia=now.getDate();const al=document.getElementById('dal');
-  if(dia>20)al.innerHTML='<div class="alert al-d"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div class="al-b"><strong>F29 vencido este mes</strong>Declara cuanto antes en sii.cl para minimizar multas.</div></div>';
-  else if(dia>=16)al.innerHTML=`<div class="alert al-w"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div class="al-b"><strong>Vence en ${20-dia} día(s)</strong>El F29 vence el día 20. Revisa tus ingresos.</div></div>`;
-  else al.innerHTML='';
+  if(decl){
+    document.getElementById('f29p').style.width='100%';document.getElementById('f29p').style.background='var(--green)';
+    document.getElementById('f29pt').textContent=(decl.tipo==='sin'?'Sin movimiento':'Declarado')+' — F29 de '+MES[pm-1]+' ya está al día.';
+    const b=document.getElementById('f29b');b.textContent='Declarado';b.className='bdg bdg-g';
+    al.innerHTML='';
+  }else{
+    document.getElementById('f29p').style.width=(totPrev>0?65:0)+'%';document.getElementById('f29p').style.background=totPrev>0?'var(--green)':'var(--gold)';
+    document.getElementById('f29pt').textContent='Pendiente: F29 de '+MES[pm-1]+'. '+(totPrev>0?'Revisa el F29 antes del día 20.':'Sin ingresos registrados ese mes.');
+    const b=document.getElementById('f29b');b.textContent='Pendiente';b.className='bdg bdg-gold';
+    if(dia>20)al.innerHTML=`<div class="alert al-d"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div class="al-b"><strong>F29 de ${MES[pm-1]} vencido</strong>Declara cuanto antes en sii.cl para minimizar multas.</div></div>`;
+    else if(dia>=16)al.innerHTML=`<div class="alert al-w"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div class="al-b"><strong>Vence en ${20-dia} día(s)</strong>F29 de ${MES[pm-1]} vence el día 20. Revisa tus ingresos.</div></div>`;
+    else al.innerHTML='';
+  }
   const top=[...D.ingresos].sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)).slice(0,5);
   const act=document.getElementById('dact');
   if(!top.length){act.innerHTML='<div class="empty"><div class="ei2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M5 4h14a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg></div>Sin registros aún.</div>';return}
@@ -544,21 +609,32 @@ function rD(){
 
 // CALENDARIO
 function rCal(){
-  const now=new Date();const dia=now.getDate();const mes=now.getMonth();const y=now.getFullYear();
+  const now=new Date();const dia=now.getDate();let mes=now.getMonth();let y=now.getFullYear();
+  const prevD=new Date(y,mes-1,1);const pmes=prevD.getMonth();const py=prevD.getFullYear();
+  const declPend=getDecl(py,pmes+1);
   const al=document.getElementById('cal-al');
-  if(dia>20)al.innerHTML='<div class="alert al-d"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div class="al-b"><strong>F29 fuera de plazo</strong>Declara ahora en sii.cl. Multa base: 10% del impuesto + 1.5% mensual de interés.</div></div>';
-  else if(dia>=16)al.innerHTML=`<div class="alert al-w"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><div class="al-b"><strong>Vence en ${20-dia} día(s)</strong>F29 de ${MES[mes]} vence el día 20.</div></div>`;
-  else al.innerHTML=`<div class="alert al-ok"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><div class="al-b"><strong>Al día</strong>Próximo F29 el 20 de ${MES[mes]}, en ${20-dia} días.</div></div>`;
-  const mn=(mes+1)%12;const yn=mes===11?y+1:y;
+  if(declPend){
+    al.innerHTML=`<div class="alert al-ok"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><div class="al-b"><strong>F29 de ${MES[pmes]} ya declarado</strong>${declPend.tipo==='sin'?'Sin movimiento':'Con pago'} — próximo vencimiento: 20 de ${MES[mes]} (para el F29 de ${MES[mes]}).</div></div>`;
+  } else if(dia>20){
+    al.innerHTML=`<div class="alert al-d"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div class="al-b"><strong>F29 de ${MES[pmes]} fuera de plazo</strong>Declara ahora en sii.cl. Multa base: 10% del impuesto + 1.5% mensual de interés.</div></div>`;
+  } else if(dia>=16){
+    al.innerHTML=`<div class="alert al-w"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><div class="al-b"><strong>Vence en ${20-dia} día(s)</strong>F29 de ${MES[pmes]} vence el 20 de ${MES[mes]}.</div></div>`;
+  } else {
+    al.innerHTML=`<div class="alert al-ok"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><div class="al-b"><strong>Al día</strong>F29 de ${MES[pmes]} vence el 20 de ${MES[mes]}, en ${20-dia} días.</div></div>`;
+  }
+  const nextD=new Date(y,mes+1,1);const nmes=nextD.getMonth();const ny=nextD.getFullYear();
   const diasF22=Math.round((new Date(y+1,3,30)-now)/86400000);
+  const item1=declPend
+    ?{d:20,m:MES[nmes]+' '+ny,t:'F29 de '+MES[mes]+' — próxima declaración',dt:'Pendiente',cls:'proximo'}
+    :{d:20,m:MES[mes]+' '+y,t:'F29 de '+MES[pmes]+' — plazo vigente',dt:dia<=20?`En ${20-dia} día(s)`:`Vencido hace ${dia-20} día(s)`,cls:dia>20?'urgente':dia>=16?'urgente':'proximo'};
   const items=[
-    {d:20,m:MES[mes],t:'F29 — Declaración mensual IVA + PPM',dt:dia<=20?`En ${20-dia} día(s)`:`Vencido hace ${dia-20} día(s)`,cls:dia>20?'urgente':dia>=16?'urgente':'proximo'},
-    {d:20,m:MES[mn]+' '+yn,t:'F29 — Próxima declaración mensual',dt:'En aprox. 30 días',cls:'ok'},
+    item1,
     {d:30,m:'Abril '+(y+1),t:'F22 — Declaración anual de Renta',dt:`En ${diasF22} días`,cls:'ok'},
   ];
   document.getElementById('cgrid').innerHTML=items.map(i=>`<div class="ci ${i.cls}"><div class="ci-d">${i.d}</div><div class="ci-m">${i.m}</div><div class="ci-t">${i.t}</div><div class="ci-dt">${i.dt}</div></div>`).join('');
   const nb=document.getElementById('nb-cal');
-  if(dia>=16){nb.textContent='!';nb.className='nbdg nbdg-r';}else{nb.textContent='2';nb.className='nbdg nbdg-g';}
+  if(declPend){nb.textContent='';nb.className='nbdg nbdg-g';nb.style.display='none';}
+  else{nb.style.display='';if(dia>=16){nb.textContent='!';nb.className='nbdg nbdg-r';}else{nb.textContent='2';nb.className='nbdg nbdg-g';}}
 }
 
 // INGRESOS
@@ -628,10 +704,11 @@ function rRCV(){
   const rvt=document.getElementById('rvt');
   if(!lista.length)rvt.innerHTML='<div class="empty"><div class="ei2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>Sin ventas este período.</div>';
   else rvt.innerHTML='<table><thead><tr><th>Fecha</th><th>Tipo doc.</th><th>Descripción</th><th>Tipo</th><th class="tr">Neto</th><th class="tr">IVA</th><th class="tr">Total</th></tr></thead><tbody>'+lista.map(i=>{const iv=i.tipo==='afecta'?Math.round(i.clp*.19):0;return`<tr><td>${new Date(i.fecha).toLocaleDateString('es-CL')}</td><td><span class="bdg bdg-gr">Nota venta</span></td><td>${i.desc||i.fuente}</td><td><span class="bdg ${i.tipo==='exenta'?'bdg-g':'bdg-gold'}">${i.tipo==='exenta'?'Exenta':'Afecta'}</span></td><td class="tr tm">${fmt(i.clp)}</td><td class="tr tm">${iv?fmt(iv):'—'}</td><td class="tr tm">${fmt(i.clp+iv)}</td></tr>`}).join('')+'</tbody></table>';
-  const cIva=D.compras.reduce((a,c)=>a+Math.round((c.monto||0)*.19),0);document.getElementById('rcr').textContent=fmt(cIva);
+  const comprasMes=(D.compras||[]).filter(c=>{const d=new Date(c.fecha);return d.getFullYear()===y&&(d.getMonth()+1)===m});
+  const cIva=comprasMes.reduce((a,c)=>a+Math.round((c.monto||0)*.19),0);document.getElementById('rcr').textContent=fmt(cIva);
   const rct=document.getElementById('rct');
-  if(!D.compras.length)rct.innerHTML='<div class="empty"><div class="ei2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>Sin compras. Las compras con factura te dan crédito fiscal.</div>';
-  else rct.innerHTML='<table><thead><tr><th>Fecha</th><th>Descripción</th><th class="tr">Neto</th><th class="tr">IVA crédito</th><th style="width:50px;text-align:center">Acción</th></tr></thead><tbody>'+D.compras.map(c=>`<tr><td>${new Date(c.fecha).toLocaleDateString('es-CL')}</td><td>${c.desc||'—'}</td><td class="tr tm">${fmt(c.monto)}</td><td class="tr tm" style="color:var(--green-text)">${fmt(Math.round(c.monto*.19))}</td><td style="text-align:center"><button class="btn bd bxs" onclick="delC(${c.id})">✕</button></td></tr>`).join('')+'</tbody></table>';
+  if(!comprasMes.length)rct.innerHTML='<div class="empty"><div class="ei2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>Sin compras este período.</div>';
+  else rct.innerHTML='<table><thead><tr><th>Fecha</th><th>Descripción</th><th class="tr">Neto</th><th class="tr">IVA crédito</th><th style="width:50px;text-align:center">Acción</th></tr></thead><tbody>'+comprasMes.map(c=>`<tr><td>${new Date(c.fecha).toLocaleDateString('es-CL')}</td><td>${c.desc||'—'}</td><td class="tr tm">${fmt(c.monto)}</td><td class="tr tm" style="color:var(--green-text)">${fmt(Math.round(c.monto*.19))}</td><td style="text-align:center"><button class="btn bd bxs" onclick="delC(${c.id})">✕</button></td></tr>`).join('')+'</tbody></table>';
 }
 function aC(){const mn=prompt('Monto NETO de la compra en CLP (sin IVA):');if(!mn||isNaN(mn))return;const ds=prompt('Descripción (Ej: Dominio web, suscripción):');D.compras.push({id:Date.now(),monto:parseFloat(mn),desc:ds||'Compra',fecha:new Date().toISOString().split('T')[0]});save();rRCV();cF29()}
 
@@ -639,13 +716,54 @@ function aC(){const mn=prompt('Monto NETO de la compra en CLP (sin IVA):');if(!m
 function cF29(){
   const{y,m}=gM('f29m');const lista=iM(y,m);
   const ex=lista.filter(i=>i.tipo==='exenta').reduce((a,i)=>a+i.clp,0);const af=lista.filter(i=>i.tipo==='afecta').reduce((a,i)=>a+i.clp,0);const tot=ex+af;
-  const db=Math.round(af*.19);const cN=D.compras.reduce((a,c)=>a+(c.monto||0),0);const cr=Math.round(cN*.19);
+  const comprasMes=(D.compras||[]).filter(c=>{const d=new Date(c.fecha);return d.getFullYear()===y&&(d.getMonth()+1)===m});
+  const db=Math.round(af*.19);const cN=comprasMes.reduce((a,c)=>a+(c.monto||0),0);const cr=Math.round(cN*.19);
   const ivaP=Math.max(0,db-cr);const r=D.cfg.ppm||0.25;const ppm=Math.round(tot*r/100);const totP=ivaP+ppm;
   document.getElementById('c502').textContent=fmt(ex);document.getElementById('c503').textContent=fmt(af);document.getElementById('c520').textContent=fmt(db);
   document.getElementById('c521').textContent=fmt(cN);document.getElementById('c524').textContent=fmt(cr);
   document.getElementById('c33').textContent=fmt(tot);document.getElementById('f29tasa').textContent=r+'%';document.getElementById('c38').textContent=fmt(ppm);
   document.getElementById('cod91').textContent=fmt(totP);
   const el=document.getElementById('f29tot');el.className='f29t '+(totP===0?'tz':totP<0?'tn':'tp');
+  rF29Estado();
+}
+function getDeclKey(y,m){return y+'-'+m}
+function marcarDeclarado(tipo){
+  const{y,m}=gM('f29m');
+  if(!D.declaraciones)D.declaraciones=[];
+  const key=getDeclKey(y,m);
+  const monto=parseInt((document.getElementById('cod91').textContent||'0').replace(/[^0-9-]/g,''))||0;
+  D.declaraciones=D.declaraciones.filter(d=>d.key!==key);
+  D.declaraciones.push({key,y,m,tipo,monto,fecha:new Date().toISOString()});
+  save();rF29Estado();rF29Historial();rD();rCal();
+}
+function desmarcarDeclarado(){
+  const{y,m}=gM('f29m');
+  if(!confirm('¿Deshacer la declaración de este período?'))return;
+  const key=getDeclKey(y,m);
+  D.declaraciones=(D.declaraciones||[]).filter(d=>d.key!==key);
+  save();rF29Estado();rF29Historial();rD();rCal();
+}
+function getDecl(y,m){return(D.declaraciones||[]).find(d=>d.key===getDeclKey(y,m))}
+function rF29Estado(){
+  const{y,m}=gM('f29m');
+  const d=getDecl(y,m);
+  const el=document.getElementById('f29-estado-decl');
+  if(!el)return;
+  if(d){
+    const txt=d.tipo==='sin'?'Sin movimiento':'Declarado — pagado '+fmt(d.monto||0);
+    const fecha=new Date(d.fecha).toLocaleDateString('es-CL');
+    el.innerHTML=`<div class="alert al-ok" style="margin-top:12px"><span class="al-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><div class="al-b"><strong>${MES[m-1]} ${y} ya fue declarado</strong>${txt} — marcado el ${fecha}</div></div>`;
+  } else {
+    el.innerHTML='';
+  }
+}
+function rF29Historial(){
+  const el=document.getElementById('f29-historial');
+  if(!el)return;
+  const lista=[...(D.declaraciones||[])].sort((a,b)=>(b.y*12+b.m)-(a.y*12+a.m));
+  if(!lista.length){el.innerHTML='<div class="empty"><div class="ei2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>Aún no has marcado ninguna declaración.</div>';return}
+  el.innerHTML='<table><thead><tr><th>Período</th><th>Estado</th><th class="tr">Monto declarado</th><th>Fecha marcada</th></tr></thead><tbody>'+
+    lista.map(d=>`<tr><td>${MES[d.m-1]} ${d.y}</td><td><span class="bdg ${d.tipo==='sin'?'bdg-gr':'bdg-g'}">${d.tipo==='sin'?'Sin movimiento':'Con pago'}</span></td><td class="tr tm">${d.tipo==='sin'?'—':fmt(d.monto||0)}</td><td>${new Date(d.fecha).toLocaleDateString('es-CL')}</td></tr>`).join('')+'</tbody></table>';
 }
 function pF29(){
   const{y,m}=gM('f29m');
@@ -687,7 +805,7 @@ function imp(input){
   const f=input.files[0];if(!f)return;
   const rd=new FileReader();rd.onload=e=>{try{const obj=JSON.parse(e.target.result);if(!obj.enc){alert('Archivo inválido.');return}const pw=prompt('Contraseña del backup:');if(!pw)return;const d=dec(obj.enc,pw);if(!d){alert('Contraseña incorrecta o archivo corrupto.');return}D=d;SK=pw;localStorage.setItem(MT_KEY,JSON.stringify({hash:hpw(pw)}));save();lCfg();rD();rI();rRCV();cF29();alert('✓ Datos importados.');}catch(x){alert('Error al leer el archivo.');}};rd.readAsText(f);input.value='';
 }
-function bTodo(){if(!confirm('¿Borrar TODOS los datos? Acción irreversible.'))return;if(!confirm('Última confirmación: se borra todo.'))return;D={ingresos:[],compras:[],cfg:{nombre:'Mi empresa',rut:'',giro:'',regimen:'propyme',ppm:0.25}};save();rD();rI();rRCV();cF29();alert('Datos borrados.')}
+function bTodo(){if(!confirm('¿Borrar TODOS los datos? Acción irreversible.'))return;if(!confirm('Última confirmación: se borra todo.'))return;D={ingresos:[],compras:[],gastos:[],declaraciones:[],cfg:{nombre:'Mi empresa',rut:'',giro:'',regimen:'propyme',ppm:0.25}};save();rD();rI();rRCV();cF29();alert('Datos borrados.')}
 
 initLock();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{}); }
